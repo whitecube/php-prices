@@ -12,6 +12,12 @@
         "pestphp/pest": "^0.2.3"
     },
     "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Tests\\": "tests/",
+            "Whitecube\\Price\\": "src/"
+        }
+    },
     "authors": [
         {
             "name": "Toon Van den Bos",
