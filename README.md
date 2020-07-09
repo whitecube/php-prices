@@ -12,7 +12,7 @@ Each `Price` object has a `Money\Money` instance which is considered to be the i
 
 All amounts are represented in **the smallest currency unit** (eg. cents).
 
-You can set this basic value by instanciating the Price directly with the desired `Money\Money` instance:
+You can set this basic value by instantiating the Price directly with the desired `Money\Money` instance:
 
 ```php
 use Whitecube\Price\Price;
@@ -80,7 +80,7 @@ $price->setVat(Money::EUR(100));    // VAT is now 50.0%, or €1.00
 Once set, the price object will be able to provide various VAT-related information:
 
 ```php
-$amount = $price->vat();                // Return the VAT amount as a Money\Money instance
+$amount = $price->vat();                // Returns the VAT amount as a Money\Money instance
 $percentage = $price->vatPercentage();  // Returns the VAT relative value as a float (eg. 21.0)
 $excl = $price->exclusive();            // Returns the total EXCL. amount (without VAT) as a Money\Money instance
 $incl = $price->inclusive();            // Returns the total INCL. amount (with VAT) as a Money\Money instance
