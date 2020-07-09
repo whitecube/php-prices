@@ -114,3 +114,38 @@ it('can add a discount modifier', function() {
 
     $this->assertTrue(Money::EUR(450)->equals($price->exclusive()));
 });
+
+it('can return whole modification history', function() {
+    $price = Price::EUR(500)
+        ->addModifier(CustomAmendableModifier::class, Money::EUR(100))
+        ->addModifier(AmendableModifier::class);
+
+    $history = $price->modifications();
+
+    $this->assertTrue(is_array($history));
+    $this->assertEquals(2, count($history));
+
+    $this->assertEquals('foo-bar', $history[0]['key'] ?? null);
+    $this->assertTrue(Money::EUR(125)->equals($history[0]['amount']));
+
+    $this->assertEquals('bar-foo', $history[1]['key'] ?? null);
+    $this->assertTrue(Money::EUR(100)->equals($history[1]['amount']));
+
+    $this->assertTrue(Money::EUR(725)->equals($price->exclusive()));
+});
+
+it('can return filtered modification history', function() {
+    $price = Price::EUR(500)
+        ->addModifier(CustomAmendableModifier::class, Money::EUR(100))
+        ->addModifier(AmendableModifier::class)
+        ->addDiscount(-100);
+
+    $history = $price->modifications(Modifier::TYPE_DISCOUNT);
+
+    $this->assertTrue(is_array($history));
+    $this->assertEquals(1, count($history));
+
+    $this->assertTrue(Money::EUR(-100)->equals($history[0]['amount']));
+
+    $this->assertTrue(Money::EUR(625)->equals($price->exclusive()));
+});

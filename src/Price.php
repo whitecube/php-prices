@@ -47,7 +47,7 @@ class Price implements \JsonSerializable
      *
      * @var array
      */
-    protected $modified = [];
+    protected $modifications = [];
 
     /**
      * Create a new Price object
@@ -207,9 +207,30 @@ class Price implements \JsonSerializable
         $this->modifiers[] = $this->makeModifier($arguments);
 
         $this->excl = null;
-        $this->modified = [];
+        $this->modifications = [];
 
         return $this;
+    }
+
+    /**
+     * Return the current modifications history
+     *
+     * @param null|string $type
+     * @return array
+     */
+    public function modifications($type = null)
+    {
+        if(is_null($this->excl)) {
+            $this->getModifiedBase();
+        }
+
+        $modifications = is_null($type) 
+            ? $this->modifications
+            : array_filter($this->modifications, function($item) use ($type) {
+                return $item['type'] === $type;
+            });
+
+        return array_values($modifications);
     }
 
     /**
@@ -286,7 +307,7 @@ class Price implements \JsonSerializable
             return $this->excl;
         }
 
-        $this->modified = [];
+        $this->modifications = [];
 
         $withoutVat = $this->applyModifiers(
             $this->base, $this->getModifiers(true), true
@@ -327,7 +348,7 @@ class Price implements \JsonSerializable
      */
     protected function pushModifierResult(Money $amount, PriceAmendable $modifier)
     {
-        $this->modified[] = [
+        $this->modifications[] = [
             'type' => $modifier->type(),
             'key' => $modifier->key(),
             'amount' => $amount
