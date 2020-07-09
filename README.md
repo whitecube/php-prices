@@ -66,7 +66,7 @@ $price->equals(Money::USD(300));    // true
 
 Please refer to [`moneyphp/money`'s documentation](http://moneyphp.org/) for the full list of available features.
 
-> 💡 **Nice to know**: Most of the time, you'll be using modifiers to alter a price since its base value is meant to be somehow constant. For more information on modifiers, please take a look below.
+> 💡 **Nice to know**: Most of the time, you'll be using modifiers to alter a price since its base value is meant to be somehow constant. For more information on modifiers, please take at the ["Adding modifiers" section](#adding-modifiers) below.
 
 ## Working with units
 
@@ -124,7 +124,7 @@ $inclPerUnit = $price->inclusive(true);     // €5.50
 
 ## Adding modifiers
 
-Modifiers are all the custom operations a business needs to apply on a price before displaying it on a bill. They go from discounts to taxes, including custom rules and coupons. These are the main reason this package exists.
+Modifiers are all the custom operations a business needs to apply on a price before displaying it on a bill. They range from discounts to taxes, including custom rules and coupons. These are the main reason this package exists.
 
 ### Discounts
 
@@ -148,7 +148,7 @@ use Money\Money;
 
 $price = Price::EUR(125, 10)                // 10 x €1.25
     ->addTax(100)                           // 10 x €2.25                     
-    ->addTax(Money::USD(50));               // 10 x €2.75
+    ->addTax(Money::EUR(50));               // 10 x €2.75
 
 // Add tax identifiers if needed:
 $price->addTax(50, 'grumpy-customer');      // 10 x €3.25
@@ -176,13 +176,12 @@ This package provides an easy way to create your own category of modifiers if yo
 
 ```php
 use Whitecube\Price\Price;
-use Money\Money;
 
 $price = Price::EUR(800, 5)
     ->addModifier(-50, 'my-modifier-key', 'my-modifier-type');
 ```
 
-> 💡 **Nice to know**: Modifier types (`tax`, `discount`, `other` and your own) are useful for filtering, grouping and displaying sub-totals or price construction details. More information on this subject below.
+> 💡 **Nice to know**: Modifier types (`tax`, `discount`, `other` and your own) are useful for filtering, grouping and displaying sub-totals or price construction details. More information in the ["Displaying modification details" section](#displaying-modification-details) below.
 
 #### Modifier closures
 
@@ -304,9 +303,9 @@ class BetweenModifier implements PriceAmendable
 
 ### Before or after VAT?
 
-Depending on the modifier's nature, VAT could be applied before or after its intervention on the final price. All modifiers can be configured to execute during one of these phases.
+Depending on the modifier's nature, VAT could be applied before or after its intervention on the final price. All modifiers can be configured to be executed during one of these phases.
 
-When adding discounts, taxes and simple custom modifiers, adding "true" as last argument indicates the modifier should apply before the VAT value is computed:
+When adding discounts, taxes and simple custom modifiers, adding `true` as last argument indicates the modifier should apply before the VAT value is computed:
 
 ```php
 use Whitecube\Price\Price;
@@ -317,16 +316,16 @@ $price = Price::USD(800, 5)                                 // 5 x $8.00
     ->addModifier(100, 'custom-key', 'custom-type', true);  // 5 x $8.50 -> new VAT base
 ```
 
-In custom classes, this is handled by the `isBeforeVat` method's returned value.
+In custom classes, this is handled by the `isBeforeVat` method.
 
-> ⚠️ **Warning**: The "isBeforeVAT" argument and methods will **alter the modifiers execution order**. Prices will first apply all the modifiers that should be executed before VAT in order of appearance, followed by the remaining ones (also in order of appearance).
+> ⚠️ **Warning**: The "isBeforeVAT" argument and methods will **alter the modifiers execution order**. Prices will first apply all the modifiers that should be executed before VAT (in order of appearance), followed by the remaining ones (also in order of appearance).
 
 ## Displaying modification details
 
-When debugging or building complex user interfaces, it is often necessary to retrieve the complete Price modification history. This can be done using the `modifications()` method after all the modifiers have been applied on the Price instance:
+When debugging or building complex user interfaces, it is often necessary to retrieve the complete Price modification history. This can be done using the `modifications()` method after all the modifiers have been added on the Price instance:
 
 ```php
-$history = $price->modifications();                             // Array containing chronological modifier results
+$history = $price->modifications(); // Array containing chronological modifier results
 ```
 
 It is also possible to filter this history based on the modifier types:
@@ -334,16 +333,16 @@ It is also possible to filter this history based on the modifier types:
 ```php
 use Whitecube\Price\Modifier;
 
-$history = $price->modifications(Modifier::TYPE_DISCOUNT);      // Only returning discount results
+$history = $price->modifications(Modifier::TYPE_DISCOUNT);  // Only returning discount results
 ```
 
 ## Output
 
-All handled monetary values are always wrapped into a `Money\Money` object. This is and should be the only way to handle these values in order to [avoid decimal approximation errors](https://stackoverflow.com/questions/3730019/why-not-use-double-or-float-to-represent-currency).
+All handled monetary values are always wrapped into a `Money\Money` object. This is and should be the only way to manipulate these values in order to [avoid decimal approximation errors](https://stackoverflow.com/questions/3730019/why-not-use-double-or-float-to-represent-currency).
 
 ### JSON
 
-Prices can be serialized to JSON objects and rehydrated using the `Price::json($value)` method, which can be useful when storing/retrieving prices from a database or an external API for example:
+Prices can be serialized to JSON and rehydrated using the `Price::json($value)` method, which can be useful when storing/retrieving prices from a database or an external API for example:
 
 ```php
 use Whitecube\Price\Price;
