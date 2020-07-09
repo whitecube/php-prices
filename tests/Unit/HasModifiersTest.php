@@ -115,6 +115,18 @@ it('can add a discount modifier', function() {
     $this->assertTrue(Money::EUR(450)->equals($price->exclusive()));
 });
 
+it('can apply modifiers before computing VAT', function() {
+    $price = Price::EUR(500)
+        ->setVat(10)
+        ->addModifier(CustomAmendableModifier::class, Money::EUR(100))
+        ->addModifier(AmendableModifier::class);
+
+    $vat = $price->vat();
+
+    $this->assertTrue(Money::EUR(63)->equals($vat));
+    $this->assertTrue(Money::EUR(788)->equals($price->inclusive()));
+});
+
 it('can return whole modification history', function() {
     $price = Price::EUR(500)
         ->addModifier(CustomAmendableModifier::class, Money::EUR(100))

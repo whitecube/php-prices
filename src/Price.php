@@ -127,7 +127,11 @@ class Price implements \JsonSerializable
             return null;
         }
 
-        return $this->base->multiply(
+        $base = $this->applyModifiers(
+            $this->base, $this->getModifiers(true), false
+        );
+
+        return $base->multiply(
             ($perUnit ? 1 : $this->units) * ($this->vat / 100)
         );
     }
