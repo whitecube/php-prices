@@ -60,7 +60,7 @@ it('can add a custom amendable modifier classname with custom arguments', functi
 });
 
 it('can add a numeric modifier', function() {
-    $price = Price::EUR(500)->addModifier('-100,00');
+    $price = Price::EUR(500)->addModifier('-100');
 
     $this->assertInstanceOf(Price::class, $price);
 

@@ -43,6 +43,13 @@ class Price implements \JsonSerializable
     protected $modifiers = [];
 
     /**
+     * The modified results
+     *
+     * @var array
+     */
+    protected $modified = [];
+
+    /**
      * Create a new Price object
      *
      * @param \Money\Money $base
@@ -143,7 +150,7 @@ class Price implements \JsonSerializable
      */
     public function exclusive($perUnit = false)
     {
-        return ($this->excl ?? $this->base)
+        return $this->getModifiedBase()
             ->multiply($perUnit ? 1 : $this->units);
     }
 
@@ -200,6 +207,7 @@ class Price implements \JsonSerializable
         $this->modifiers[] = $this->makeModifier($arguments);
 
         $this->excl = null;
+        $this->modified = [];
 
         return $this;
     }
@@ -265,6 +273,79 @@ class Price implements \JsonSerializable
             ($arguments[1] ?? null) ?: null,
             boolval($arguments[2] ?? null),
         ];
+    }
+
+    /**
+     * Get the price's modified exclusive base price
+     *
+     * @return \Money\Money
+     */
+    protected function getModifiedBase()
+    {
+        if(!is_null($this->excl)) {
+            return $this->excl;
+        }
+
+        $this->modified = [];
+
+        $withoutVat = $this->applyModifiers(
+            $this->base, $this->getModifiers(true), true
+        );
+
+        return $this->excl = $this->applyModifiers(
+            $withoutVat, $this->getModifiers(false), true
+        );
+    }
+
+    /**
+     * Apply the given modifiers array on the given base price
+     *
+     * @param \Money\Money $base
+     * @param array $modifiers
+     * @param bool $log
+     * @return \Money\Money
+     */
+    protected function applyModifiers(Money $base, array $modifiers, $log = true)
+    {
+        return array_reduce($modifiers, function($base, $modifier) use ($log) {
+            $result = $modifier->apply($base);
+
+            if(!$result) return $base;
+
+            if($log) $this->pushModifierResult($result->subtract($base), $modifier);
+
+            return $result;
+        }, $base);
+    }
+
+    /**
+     * Add a modifier's result to the modified history array
+     *
+     * @param \Money\Money $amount
+     * @param \Whitecube\Price\PriceAmendable $modifier
+     * @return void
+     */
+    protected function pushModifierResult(Money $amount, PriceAmendable $modifier)
+    {
+        $this->modified[] = [
+            'type' => $modifier->type(),
+            'key' => $modifier->key(),
+            'amount' => $amount
+        ];
+    }
+
+    /**
+     * Get the defined modifiers from before or after the
+     * VAT value should have been applied
+     *
+     * @param bool $before
+     * @return array
+     */
+    protected function getModifiers(bool $before)
+    {
+        return array_filter($this->modifiers, function($modifier) use ($before) {
+            return $modifier->isBeforeVat() === $before;
+        });
     }
 
     /**
