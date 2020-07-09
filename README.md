@@ -20,7 +20,9 @@ use Money\Money;
 use Money\Currency;
 
 $base = new Money(500, new Currency('USD'));    // $5.00
-$price = new Price($base);
+
+$single = new Price($base);                     // 1 x $5.00
+$multiple = new Price($base, 4);                // 4 x $5.00
 ```
 
 For convenience, it is also possible to use the shorthand Money factory methods:
@@ -28,7 +30,8 @@ For convenience, it is also possible to use the shorthand Money factory methods:
 ```php
 use Whitecube\Price\Price;
 
-$price = Price::EUR(500);   // €5.00
+$single = Price::EUR(500);                      // 1 x $5.00
+$single = Price::EUR(500, 4);                   // 4 x €5.00
 ```
 
 For more information on the available currencies and parsable formats, please take a look at [`moneyphp/money`'s documentation](http://moneyphp.org/).
@@ -51,14 +54,14 @@ The price object will forward all the `Money\Money` API method calls to its base
 use Whitecube\Price\Price;
 use Money\Money;
 
-$price = Price::EUR(500);           // €5.00
+$price = Price::USD(500, 2);        // 2 x $5.00
 
-$price->add(Money::EUR(100))        // €6.00
-    ->divide(2)                     // €3.00
-    ->subtract(Money::EUR(600))     // €-3.00
-    ->absolute();                   // €3.00
+$price->add(Money::USD(100))        // 2 x $6.00
+    ->divide(2)                     // 2 x $3.00
+    ->subtract(Money::USD(600))     // 2 x $-3.00
+    ->absolute();                   // 2 x $3.00
 
-$price->equals(Money::EUR(300));    // true
+$price->equals(Money::USD(300));    // true
 ```
 
 Please refer to [`moneyphp/money`'s documentation](http://moneyphp.org/) for the full list of available features.
@@ -70,18 +73,21 @@ VAT can be added in two ways: by providing its relative value (eg. 21%) or by se
 ```php
 use Whitecube\Price\Price;
 
-$price = Price::EUR(200);
+$price = Price::EUR(200);                   // 1 x €2.00
 
-$price->setVat(21);                 // VAT is now 21.0%, or €0.42
+$price->setVat(21);                         // VAT is now 21.0%, or €0.42 per unit
 
-$price->setVat(Money::EUR(100));    // VAT is now 50.0%, or €1.00
+$price->setVat(Money::EUR(100));            // VAT is now 50.0%, or €1.00 per unit
 ```
 
 Once set, the price object will be able to provide various VAT-related information:
 
 ```php
-$amount = $price->vat();                // Returns the VAT amount as a Money\Money instance
-$percentage = $price->vatPercentage();  // Returns the VAT relative value as a float (eg. 21.0)
-$excl = $price->exclusive();            // Returns the total EXCL. amount (without VAT) as a Money\Money instance
-$incl = $price->inclusive();            // Returns the total INCL. amount (with VAT) as a Money\Money instance
+use Whitecube\Price\Price;
+
+$price = Price::USD(500, 3)->setVat(10);    // 3 x $5.00
+$amount = $price->vat();                    // $1.50
+$percentage = $price->vatPercentage();      // 10.0
+$excl = $price->exclusive();                // $15.00
+$incl = $price->inclusive();                // $16.50
 ```

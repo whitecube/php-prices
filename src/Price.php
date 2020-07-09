@@ -29,14 +29,23 @@ class Price
     protected $vat;
 
     /**
+     * The amount of times the base price is multiplied
+     *
+     * @var float
+     */
+    protected $units;
+
+    /**
      * Create a new Price object
      *
      * @param \Money\Money $base
+     * @param int $units
      * @return void
      */
-    public function __construct(Money $base)
+    public function __construct(Money $base, $units = 1)
     {
         $this->base = $base;
+        $this->setUnits($units);
     }
 
     /**
@@ -50,10 +59,33 @@ class Price
     }
 
     /**
+     * Define the total units count
+     *
+     * @param mixed $value
+     * @return $this
+     */
+    public function setUnits($value)
+    {
+        $this->units = floatval(str_replace(',', '.', $value));
+
+        return $this;
+    }
+
+    /**
+     * Return the total units count
+     *
+     * @return float
+     */
+    public function units()
+    {
+        return $this->units;
+    }
+
+    /**
      * Add a VAT value
      *
      * @param mixed $value
-     * @return this
+     * @return $this
      */
     public function setVat($value = null)
     {
@@ -78,7 +110,7 @@ class Price
         if(is_null($this->vat)) {
             return null;
         }
-        
+
         return $this->base->multiply($this->vat / 100);
     }
 
@@ -121,7 +153,7 @@ class Price
      *
      * @param string $method
      * @param array  $arguments
-     * @return this|mixed
+     * @return $this|mixed
      */
     public function __call($method, $arguments)
     {
@@ -147,6 +179,6 @@ class Price
     {
         $base = new Money($arguments[0], new Currency($method));
 
-        return new static($base);
+        return new static($base, $arguments[1] ?? 1);
     }
 }
