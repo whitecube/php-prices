@@ -113,13 +113,228 @@ $price = Price::EUR(500, 3)->setVat(10);    // 3 x €5.00
 
 $percentage = $price->vatPercentage();      // 10.0
 
-$amount = $price->vat();                    // €1.50
+$vat = $price->vat();                       // €1.50
 $excl = $price->exclusive();                // €15.00
 $incl = $price->inclusive();                // €16.50
 
-$amountPerUnit = $price->vat(true);         // €0.50
+$vatPerUnit = $price->vat(true);            // €0.50
 $exclPerUnit = $price->exclusive(true);     // €5.00
 $inclPerUnit = $price->inclusive(true);     // €5.50
+```
+
+## Adding modifiers
+
+Modifiers are all the custom operations a business needs to apply on a price before displaying it on a bill. They go from discounts to taxes, including custom rules and coupons. These are the main reason this package exists.
+
+### Discounts
+
+```php
+use Whitecube\Price\Price;
+use Money\Money;
+
+$price = Price::USD(800, 5)                 // 5 x $8.00
+    ->addDiscount(-100)                     // 5 x $7.00
+    ->addDiscount(Money::USD(-50));         // 5 x $6.50
+
+// Add discount identifiers if needed:
+$price->addDiscount(-50, 'nice-customer');  // 5 x $6.00
+```
+
+### Taxes (other than VAT)
+
+```php
+use Whitecube\Price\Price;
+use Money\Money;
+
+$price = Price::EUR(125, 10)                // 10 x €1.25
+    ->addTax(100)                           // 10 x €2.25                     
+    ->addTax(Money::USD(50));               // 10 x €2.75
+
+// Add tax identifiers if needed:
+$price->addTax(50, 'grumpy-customer');      // 10 x €3.25
+```
+
+### Custom behavior
+
+Sometimes modifiers cannot be categorized into "discounts" or "taxes", in which case you can add an anonymous "other" modifier type:
+
+```php
+use Whitecube\Price\Price;
+use Money\Money;
+
+$price = Price::USD(2000)                   // 1 x $20.00
+    ->addModifier(500)                      // 1 x $25.00                
+    ->addModifier(Money::USD(-250));        // 1 x $22.50
+
+// Add modifier identifiers if needed:
+$price->addModifier(50, 'extra-sauce');     // 1 x $23.00
+```
+
+#### Custom modifier types
+
+This package provides an easy way to create your own category of modifiers if you need to differenciate them from classical discounts or taxes.
+
+```php
+use Whitecube\Price\Price;
+use Money\Money;
+
+$price = Price::EUR(800, 5)
+    ->addModifier(-50, 'my-modifier-key', 'my-modifier-type');
+```
+
+> 💡 **Nice to know**: Modifier types (`tax`, `discount`, `other` and your own) are useful for filtering, grouping and displaying sub-totals or price construction details. More information on this subject below.
+
+#### Modifier closures
+
+Most of the time, modifiers are more complex to define than simple "+" or "-" operations. Therefore, it is possible to provide your own application logic by passing a closure instead of a monetary value:
+
+```php
+use Whitecube\Price\Price;
+use Money\Money;
+
+$price = Price::USD(1250)
+    ->addDiscount(function(Money $value) {
+        return $value->subtract($value->multiply(0.10));
+    })
+    ->addTax(function(Money $value) {
+        return $value->add($value->multiply(0.27));
+    })
+    ->addModifier(function(Money $value) {
+        return $value->divide(2);
+    });
+```
+
+#### Modifier classes
+
+For even more flexibility and readability, it is also possible to extract all these features into their own class:
+
+```php
+use Whitecube\Price\Price;
+
+$price = Price::EUR(600, 5)
+    ->addDiscount(Discounts\FirstOrder::class)
+    ->addTax(Taxes\Gambling::class)
+    ->addModifier(SomeCustomModifier::class);
+```
+
+These classes have to implement the [`Whitecube\Price\PriceAmendable`](https://github.com/whitecube/php-prices/blob/master/src/PriceAmendable.php) interface, which looks more or less like this:
+
+```php
+use Money\Money;
+use Whitecube\Price\Modifier;
+use Whitecube\Price\PriceAmendable;
+
+class SomeRandomModifier implements PriceAmendable
+{
+    /**
+     * Return the modifier type (tax, discount, other, ...)
+     *
+     * @return string
+     */
+    public function type() : string
+    {
+        return Modifier::TYPE_TAX;
+    }
+
+    /**
+     * Return the modifier's identification key
+     *
+     * @return null|string
+     */
+    public function key() : ?string
+    {
+        return 'very-random-tax';
+    }
+
+    /**
+     * Whether the modifier should be applied before the
+     * VAT value has been computed.
+     *
+     * @return bool
+     */
+    public function isBeforeVat() : bool
+    {
+        return false;
+    }
+
+    /**
+     * Apply the modifier on the given Money instance
+     *
+     * @param \Money\Money $value
+     * @return null|\Money\Money
+     */
+    public function apply(Money $value) : ?Money
+    {
+        if(date('j') > 1) {
+            // Do not apply if it's not the first day of the month
+            return null;
+        }
+
+        // Add 25%
+        return $value->multiply(1.25);
+    }
+}
+```
+
+If needed, it is also possible to pass arguments to these custom classes from the Price configuration:
+
+```php
+use Money\Money;
+use Whitecube\Price\Price;
+
+$price = Price::EUR(600, 5)
+    ->addModifier(BetweenModifier::class, Money::EUR(-100), Money::EUR(100));
+```
+
+```php
+use Money\Money;
+use Whitecube\Price\PriceAmendable;
+
+class BetweenModifier implements PriceAmendable
+{
+    public function __construct(Money $minimum, Money $maximum)
+    {
+        $this->minimum = $minimum;
+        $this->maximum = $maximum;
+    }
+
+    // ...
+}
+```
+
+### Before or after VAT?
+
+Depending on the modifier's nature, VAT could be applied before or after its intervention on the final price. All modifiers can be configured to execute during one of these phases.
+
+When adding discounts, taxes and simple custom modifiers, adding "true" as last argument indicates the modifier should apply before the VAT value is computed:
+
+```php
+use Whitecube\Price\Price;
+
+$price = Price::USD(800, 5)                                 // 5 x $8.00
+    ->addDiscount(-100, 'discount-key', true)               // 5 x $7.00 -> new VAT base
+    ->addTax(50, 'tax-key', true)                           // 5 x $7.50 -> new VAT base
+    ->addModifier(100, 'custom-key', 'custom-type', true);  // 5 x $8.50 -> new VAT base
+```
+
+In custom classes, this is handled by the `isBeforeVat` method's returned value.
+
+> ⚠️ **Warning**: The "isBeforeVAT" argument and methods will **alter the modifiers execution order**. Prices will first apply all the modifiers that should be executed before VAT in order of appearance, followed by the remaining ones (also in order of appearance).
+
+## Displaying modification details
+
+When debugging or building complex user interfaces, it is often necessary to retrieve the complete Price modification history. This can be done using the `modifications()` method after all the modifiers have been applied on the Price instance:
+
+```php
+$history = $price->modifications();                             // Array containing chronological modifier results
+```
+
+It is also possible to filter this history based on the modifier types:
+
+```php
+use Whitecube\Price\Modifier;
+
+$history = $price->modifications(Modifier::TYPE_DISCOUNT);      // Only returning discount results
 ```
 
 ## Output
