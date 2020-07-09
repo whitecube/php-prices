@@ -36,6 +36,13 @@ class Price implements \JsonSerializable
     protected $units;
 
     /**
+     * The price modifiers to apply
+     *
+     * @var array
+     */
+    protected $modifiers = [];
+
+    /**
      * Create a new Price object
      *
      * @param \Money\Money $base
@@ -154,6 +161,110 @@ class Price implements \JsonSerializable
 
         return $this->exclusive($perUnit)
             ->add($this->vat($perUnit));
+    }
+
+    /**
+     * Add a tax modifier
+     *
+     * @param mixed $modifier
+     * @param null|string $key
+     * @param null|bool $pre
+     * @return $this
+     */
+    public function addTax($modifier, $key = null, $pre = null)
+    {
+        return $this->addModifier($modifier, $key, Modifier::TYPE_TAX, $pre);
+    }
+
+    /**
+     * Add a discount modifier
+     *
+     * @param mixed $modifier
+     * @param null|string $key
+     * @param null|bool $pre
+     * @return $this
+     */
+    public function addDiscount($modifier, $key = null, $pre = null)
+    {
+        return $this->addModifier($modifier, $key, Modifier::TYPE_DISCOUNT, $pre);
+    }
+
+    /**
+     * Add a price modifier
+     *
+     * @param array $arguments
+     * @return $this
+     */
+    public function addModifier(...$arguments)
+    {
+        $this->modifiers[] = $this->makeModifier($arguments);
+
+        $this->excl = null;
+
+        return $this;
+    }
+
+    /**
+     * Create a usable modifier instance
+     *
+     * @param array $arguments
+     * @return \Whitecube\Price\PriceAmendable
+     * @throws \InvalidArgumentException
+     */
+    protected function makeModifier(array $arguments)
+    {
+        $modifier = array_shift($arguments);
+
+        if(is_null($modifier)) {
+            throw new \InvalidArgumentException('Cannot create modifier from NULL value.');
+        }
+
+        if(is_numeric($modifier)) {
+            $modifier = new Money($modifier, $this->base->getCurrency());
+        }
+
+        if(is_a($modifier, Money::class)) {
+            $modifier = function(Money $value) use ($modifier) {
+                return $value->add($modifier);
+            };
+        }
+
+        if (is_callable($modifier)) {
+            [$key, $type, $pre] = $this->extractModifierArguments($arguments);
+            $modifier = new Modifier($modifier, $key, $type, $pre);
+        } elseif (is_string($modifier) && class_exists($modifier)) {
+            $modifier = new $modifier(...$arguments);
+        }
+
+        if(!is_a($modifier, PriceAmendable::class)) {
+            throw new \InvalidArgumentException('Price modifier instance should implement "' . PriceAmendable::class . '".');
+        }
+
+        return $modifier;
+    }
+
+    /**
+     * Finds the named arguments from a loose modifier call
+     *
+     * @param array $arguments
+     * @return array
+     */
+    protected function extractModifierArguments(array $arguments)
+    {
+        switch (count($arguments)) {
+            case 0:
+                return [null, null, false];
+            case 1:
+                return [$arguments[0] ?: null, null, false];
+            case 2:
+                return [$arguments[0] ?: null, $arguments[1] ?: null, false];
+        }
+
+        return [
+            ($arguments[0] ?? null) ?: null,
+            ($arguments[1] ?? null) ?: null,
+            boolval($arguments[2] ?? null),
+        ];
     }
 
     /**
