@@ -22,18 +22,11 @@ class Price
     protected $excl;
 
     /**
-     * The VAT's Money amount
-     *
-     * @var null|\Money\Money
-     */
-    protected $vatAmount;
-
-    /**
      * The VAT's percentage of the base price
      *
      * @var null|float
      */
-    protected $vatPercentage;
+    protected $vat;
 
     /**
      * Create a new Price object
@@ -65,19 +58,13 @@ class Price
     public function setVat($value = null)
     {
         if(is_null($value)) {
-            $this->vatAmount = null;
-            $this->vatPercentage = null;
-            return $this;
+            $this->vat = null;
+        } elseif (is_a($value, Money::class)) {
+            $this->vat = (100 / $this->base->ratioOf($value));
+        } else {
+            $this->vat = floatval(str_replace(',', '.', $value));
         }
 
-        if(is_a($value, Money::class)) {
-            $this->vatAmount = $value;
-            $this->vatPercentage = (100 / $this->base->ratioOf($value));
-            return $this;
-        }
-
-        $this->vatPercentage = floatval(str_replace(',', '.', $value));
-        $this->vatAmount = $this->base->multiply($this->vatPercentage / 100);
         return $this;
     }
 
@@ -88,7 +75,11 @@ class Price
      */
     public function vat()
     {
-        return $this->vatAmount;
+        if(is_null($this->vat)) {
+            return null;
+        }
+        
+        return $this->base->multiply($this->vat / 100);
     }
 
     /**
@@ -98,7 +89,7 @@ class Price
      */
     public function vatPercentage()
     {
-        return $this->vatPercentage;
+        return $this->vat;
     }
 
     /**
@@ -118,11 +109,11 @@ class Price
      */
     public function inclusive()
     {
-        if(is_null($this->vatAmount)) {
+        if(is_null($this->vat)) {
             return $this->exclusive();
         }
 
-        return $this->exclusive()->add($this->vatAmount);
+        return $this->exclusive()->add($this->vat());
     }
 
     /**

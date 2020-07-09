@@ -8,7 +8,7 @@ WIP.
 
 ## Instantiation
 
-Each `Price` object has a `Money\Money` instance which is considered to be the item's raw, generic & exclusive amount. All the composition operations, such as adding VAT or applying a discount, are added on top of this base value.
+Each `Price` object has a `Money\Money` instance which is considered to be the item's raw, per-unit & exclusive amount. All the composition operations, such as adding VAT or applying a discount, are added on top of this base value.
 
 All amounts are represented in **the smallest currency unit** (eg. cents).
 
