@@ -6,11 +6,7 @@ Using the underlying [`moneyphp/money`](https://github.com/moneyphp/money) libra
 
 WIP.
 
-## Documentation
-
-WIP.
-
-### Instantiation
+## Instantiation
 
 Each `Price` object has a `Money\Money` instance which is considered to be the item's raw, generic & exclusive amount. All the composition operations, such as adding VAT or applying a discount, are added on top of this base value.
 
@@ -37,7 +33,7 @@ $price = Price::EUR(500);   // €5.00
 
 For more information on the available currencies and parsable formats, please take a look at [`moneyphp/money`'s documentation](http://moneyphp.org/).
 
-#### Accessing the underlying Money/Money object
+### Accessing the underlying Money/Money object
 
 Once set, this base value can be accessed using the `base()` method.
 
@@ -45,7 +41,7 @@ Once set, this base value can be accessed using the `base()` method.
 $base = $price->base();
 ```
 
-#### Modifying the base price
+### Modifying the base price
 
 The price object will forward all the `Money\Money` API method calls to its base value.
 
@@ -66,3 +62,26 @@ $price->equals(Money::EUR(300));    // true
 ```
 
 Please refer to [`moneyphp/money`'s documentation](http://moneyphp.org/) for the full list of available features.
+
+## Adding VAT
+
+VAT can be added in two ways: by providing its relative value (eg. 21%) or by setting its monetary value directly (eg. €2.50).
+
+```php
+use Whitecube\Price\Price;
+
+$price = Price::EUR(200);
+
+$price->setVat(21);                 // VAT is now 21.0%, or €0.42
+
+$price->setVat(Money::EUR(100));    // VAT is now 50.0%, or €1.00
+```
+
+Once set, the price object will be able to provide various VAT-related information:
+
+```php
+$amount = $price->vat();                // Return the VAT amount as a Money\Money instance
+$percentage = $price->vatPercentage();  // Returns the VAT relative value as a float (eg. 21.0)
+$excl = $price->exclusive();            // Returns the total EXCL. amount (without VAT) as a Money\Money instance
+$incl = $price->inclusive();            // Returns the total INCL. amount (with VAT) as a Money\Money instance
+```
