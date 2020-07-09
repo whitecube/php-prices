@@ -30,8 +30,8 @@ For convenience, it is also possible to use the shorthand Money factory methods:
 ```php
 use Whitecube\Price\Price;
 
-$single = Price::EUR(500);                      // 1 x $5.00
-$single = Price::EUR(500, 4);                   // 4 x €5.00
+$single = Price::EUR(500);                      // 1 x €5.00
+$multiple = Price::EUR(500, 4);                 // 4 x €5.00
 ```
 
 For more information on the available currencies and parsable formats, please take a look at [`moneyphp/money`'s documentation](http://moneyphp.org/).
@@ -79,13 +79,13 @@ $price = Price::EUR(500, 2);        // 2 units of €5.00 each
 Or modify it later using the `setUnits()` method:
 
 ```php
-$price->setUnits(1.75);             // 1,75 x €5.00
+$price->setUnits(1.75);             // 1.75 x €5.00
 ```
 
 You can return the units count using the `units()` method:
 
 ```php
-$units = $price->units();            // 1.75
+$units = $price->units();           // 1.75
 ```
 
 ## Adding VAT
@@ -108,11 +108,14 @@ Once set, the price object will be able to provide various VAT-related informati
 use Whitecube\Price\Price;
 
 $price = Price::EUR(500, 3)->setVat(10);    // 3 x €5.00
-$amount = $price->vat();                    // €1.50
-$amountPerUnit = $price->vat(true);         // €0.50
+
 $percentage = $price->vatPercentage();      // 10.0
+
+$amount = $price->vat();                    // €1.50
 $excl = $price->exclusive();                // €15.00
-$exclPerUnit = $price->exclusive(true);     // €5.00
 $incl = $price->inclusive();                // €16.50
+
+$amountPerUnit = $price->vat(true);         // €0.50
+$exclPerUnit = $price->exclusive(true);     // €5.00
 $inclPerUnit = $price->inclusive(true);     // €5.50
 ```
