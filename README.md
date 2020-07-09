@@ -79,7 +79,13 @@ $price = Price::EUR(500, 2);        // 2 units of €5.00 each
 Or modify it later using the `setUnits()` method:
 
 ```php
-$price->setUnits(1.75)              // 1,75 x €5.00
+$price->setUnits(1.75);             // 1,75 x €5.00
+```
+
+You can return the units count using the `units()` method:
+
+```php
+$units = $price->units();            // 1.75
 ```
 
 ## Adding VAT
@@ -89,11 +95,11 @@ VAT can be added in two ways: by providing its relative value (eg. 21%) or by se
 ```php
 use Whitecube\Price\Price;
 
-$price = Price::EUR(200);                   // 1 x €2.00
+$price = Price::USD(200);                   // 1 x $2.00
 
-$price->setVat(21);                         // VAT is now 21.0%, or €0.42 per unit
+$price->setVat(21);                         // VAT is now 21.0%, or $0.42 per unit
 
-$price->setVat(Money::EUR(100));            // VAT is now 50.0%, or €1.00 per unit
+$price->setVat(Money::USD(100));            // VAT is now 50.0%, or $1.00 per unit
 ```
 
 Once set, the price object will be able to provide various VAT-related information:
@@ -101,12 +107,12 @@ Once set, the price object will be able to provide various VAT-related informati
 ```php
 use Whitecube\Price\Price;
 
-$price = Price::USD(500, 3)->setVat(10);    // 3 x $5.00
-$amount = $price->vat();                    // $1.50
-$amountPerUnit = $price->vat(true);         // $0.50
+$price = Price::EUR(500, 3)->setVat(10);    // 3 x €5.00
+$amount = $price->vat();                    // €1.50
+$amountPerUnit = $price->vat(true);         // €0.50
 $percentage = $price->vatPercentage();      // 10.0
-$excl = $price->exclusive();                // $15.00
-$exclPerUnit = $price->exclusive(true);     // $5.00
-$incl = $price->inclusive();                // $16.50
-$inclPerUnit = $price->inclusive(true);     // $5.50
+$excl = $price->exclusive();                // €15.00
+$exclPerUnit = $price->exclusive(true);     // €5.00
+$incl = $price->inclusive();                // €16.50
+$inclPerUnit = $price->inclusive(true);     // €5.50
 ```
