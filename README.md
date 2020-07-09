@@ -48,7 +48,7 @@ $base = $price->base();
 
 The price object will forward all the `Money\Money` API method calls to its base value.
 
-> **Warning**: In opposition to [Money](https://github.com/moneyphp/money) objects, Price objects are not immutable. Therefore, operations like add, subtract, etc. will directly modify the price's base value instead of returning a new instance.
+> ⚠️ **Warning**: In opposition to [Money](https://github.com/moneyphp/money) objects, Price objects are not immutable. Therefore, operations like add, subtract, etc. will directly modify the price's base value instead of returning a new instance.
 
 ```php
 use Whitecube\Price\Price;
@@ -119,3 +119,21 @@ $amountPerUnit = $price->vat(true);         // €0.50
 $exclPerUnit = $price->exclusive(true);     // €5.00
 $inclPerUnit = $price->inclusive(true);     // €5.50
 ```
+
+## Output
+
+All handled monetary values are always wrapped into a `Money\Money` object. This is and should be the only way to handle these values in order to avoid decimal approximation errors.
+
+### JSON
+
+Prices can be serialized to JSON objects and rehydrated using the `Price::json($value)` method, which can be useful when storing/retrieving prices from a database or an external API for example:
+
+```php
+use Whitecube\Price\Price;
+
+$json = json_encode(Price::USD(999, 4)->setVat(6));
+
+$price = Price::json($json);    // 4 x $9.99 with 6% VAT each
+```
+
+> 💡 **Nice to know**: you can also use `Price::json()` in order to create a Price object from an associative array, as long as it contains the `base`, `currency`, `units` and `vat` keys.
