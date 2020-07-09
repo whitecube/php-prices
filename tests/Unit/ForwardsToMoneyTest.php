@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests\Unit;
+
 use Money\Money;
 use Whitecube\Price\Price;
 
