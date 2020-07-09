@@ -5,7 +5,7 @@ namespace Whitecube\Price;
 use Money\Money;
 use Money\Currency;
 
-class Price
+class Price implements \JsonSerializable
 {
     /**
      * The root price
@@ -188,5 +188,51 @@ class Price
         $base = new Money($arguments[0], new Currency($method));
 
         return new static($base, $arguments[1] ?? 1);
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @return array
+     */
+    public function jsonSerialize()
+    {
+        $base = $this->base->jsonSerialize();
+        $excl = $this->exclusive()->jsonSerialize();
+        $incl = $this->inclusive()->jsonSerialize();
+
+        return [
+            'base' => $base['amount'],
+            'currency' => $base['currency'],
+            'units' => $this->units,
+            'vat' => $this->vat,
+            'total' => [
+                'exclusive' => $excl['amount'],
+                'inclusive' => $incl['amount'],
+            ],
+        ];
+    }
+
+    /**
+     * Hydrate a price object from a json string/array
+     *
+     * @param mixed $value
+     * @return static
+     * @throws \InvalidArgumentException
+     */
+    public static function json($value)
+    {
+        if(is_string($value)) {
+            $value = json_decode($value, true);
+        }
+
+        if(!is_array($value)) {
+            throw new \InvalidArgumentException('Cannot create Price from invalid argument (expects JSON string or Array)');
+        }
+
+        $base = new Money($value['base'], new Currency($value['currency']));
+        
+        return (new static($base, $value['units']))
+            ->setVat($value['vat']);
     }
 }
