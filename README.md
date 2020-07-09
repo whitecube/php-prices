@@ -4,7 +4,9 @@ Using the underlying [`moneyphp/money`](https://github.com/moneyphp/money) libra
 
 ## Install
 
-WIP.
+```
+composer require whitecube/php-prices
+```
 
 ## Instantiation
 
