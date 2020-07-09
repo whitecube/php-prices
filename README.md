@@ -122,7 +122,7 @@ $inclPerUnit = $price->inclusive(true);     // €5.50
 
 ## Output
 
-All handled monetary values are always wrapped into a `Money\Money` object. This is and should be the only way to handle these values in order to avoid decimal approximation errors.
+All handled monetary values are always wrapped into a `Money\Money` object. This is and should be the only way to handle these values in order to [avoid decimal approximation errors](https://stackoverflow.com/questions/3730019/why-not-use-double-or-float-to-represent-currency).
 
 ### JSON
 
