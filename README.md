@@ -66,6 +66,8 @@ $price->equals(Money::USD(300));    // true
 
 Please refer to [`moneyphp/money`'s documentation](http://moneyphp.org/) for the full list of available features.
 
+> 💡 **Nice to know**: Most of the time, you'll be using modifiers to alter a price since its base value is meant to be somehow constant. For more information on modifiers, please take a look below.
+
 ## Working with units
 
 This package's default behavior is to consider its base price as the "per unit" price. When no units have been specified, it defaults to `1`. You can set the units amount during instantiation:
