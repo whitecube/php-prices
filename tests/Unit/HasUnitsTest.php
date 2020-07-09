@@ -28,3 +28,12 @@ it('sets units using the setUnits method', function() {
     $this->assertInstanceOf(Price::class, $instance->setUnits('2,485'));
     $this->assertEquals(2.485, $instance->units());
 });
+
+it('returns base price per unit by default', function() {
+    $base = Money::EUR(500);
+    $instance = new Price($base, 3);
+
+    $this->assertTrue($instance->base()->equals(Money::EUR(500)));
+    // Passing "false" to base() should return the price for all units
+    $this->assertTrue($instance->base(false)->equals(Money::EUR(1500)));
+});

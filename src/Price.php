@@ -51,11 +51,12 @@ class Price
     /**
      * Return the price's base value
      *
+     * @param bool $perUnit
      * @return \Money\Money
      */
-    public function base()
+    public function base($perUnit = true)
     {
-        return $this->base;
+        return $this->base->multiply($perUnit ? 1 : $this->units);
     }
 
     /**
@@ -103,15 +104,18 @@ class Price
     /**
      * Return the VAT Money value
      *
+     * @param bool $perUnit
      * @return null|\Money\Money
      */
-    public function vat()
+    public function vat($perUnit = false)
     {
         if(is_null($this->vat)) {
             return null;
         }
 
-        return $this->base->multiply($this->vat / 100);
+        return $this->base->multiply(
+            ($perUnit ? 1 : $this->units) * ($this->vat / 100)
+        );
     }
 
     /**
@@ -127,25 +131,29 @@ class Price
     /**
      * Return the EXCL. Money value
      *
+     * @param bool $perUnit
      * @return \Money\Money
      */
-    public function exclusive()
+    public function exclusive($perUnit = false)
     {
-        return $this->excl ?? $this->base;
+        return ($this->excl ?? $this->base)
+            ->multiply($perUnit ? 1 : $this->units);
     }
 
     /**
      * Return the INCL. Money value
      *
+     * @param bool $perUnit
      * @return \Money\Money
      */
-    public function inclusive()
+    public function inclusive($perUnit = false)
     {
         if(is_null($this->vat)) {
-            return $this->exclusive();
+            return $this->exclusive($perUnit);
         }
 
-        return $this->exclusive()->add($this->vat());
+        return $this->exclusive($perUnit)
+            ->add($this->vat($perUnit));
     }
 
     /**

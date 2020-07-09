@@ -38,23 +38,39 @@ it('unsets VAT when given null', function() {
     $this->assertTrue(is_null($instance->vat()));
 });
 
-it('returns exclusive amount without VAT', function() {
-    $instance = Price::EUR(200);
+it('returns VAT for all units by default', function() {
+    $instance = Price::EUR(500, 3)->setVat(10);
 
-    $this->assertTrue($instance->exclusive()->equals(Money::EUR(200)));
+    $this->assertTrue($instance->vat()->equals(Money::EUR(150)));
+    // Passing "true" to vat() should return the VAT value per unit
+    $this->assertTrue($instance->vat(true)->equals(Money::EUR(50)));
+});
 
-    $instance->setVat(21);
+it('returns exclusive amount without VAT for all units', function() {
+    $instance = Price::EUR(500, 3);
 
-    $this->assertTrue($instance->exclusive()->equals(Money::EUR(200)));
+    $this->assertTrue($instance->exclusive()->equals(Money::EUR(1500)));
+    // Passing "true" to exclusive() should return the price per unit
+    $this->assertTrue($instance->exclusive(true)->equals(Money::EUR(500)));
+
+    $instance->setVat(10);
+
+    $this->assertTrue($instance->exclusive()->equals(Money::EUR(1500)));
+    // Passing "true" to exclusive() should return the price per unit
+    $this->assertTrue($instance->exclusive(true)->equals(Money::EUR(500)));
 });
 
 it('returns inclusive amount with VAT when defined', function() {
-    $instance = Price::EUR(200);
+    $instance = Price::EUR(500, 3);
 
-    $this->assertTrue($instance->inclusive()->equals(Money::EUR(200)));
+    $this->assertTrue($instance->inclusive()->equals(Money::EUR(1500)));
+    // Passing "true" to inclusive() should return the price per unit
+    $this->assertTrue($instance->inclusive(true)->equals(Money::EUR(500)));
 
-    $instance->setVat(21);
+    $instance->setVat(10);
 
-    $this->assertTrue($instance->inclusive()->equals(Money::EUR(242)));
+    $this->assertTrue($instance->inclusive()->equals(Money::EUR(1650)));
+    // Passing "true" to inclusive() should return the price per unit
+    $this->assertTrue($instance->inclusive(true)->equals(Money::EUR(550)));
 });
 

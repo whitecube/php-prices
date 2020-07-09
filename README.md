@@ -66,6 +66,22 @@ $price->equals(Money::USD(300));    // true
 
 Please refer to [`moneyphp/money`'s documentation](http://moneyphp.org/) for the full list of available features.
 
+## Working with units
+
+This package's default behavior is to consider its base price as the "per unit" price. When no units have been specified, it defaults to `1`. You can set the units amount during instantiation:
+
+```php
+use Whitecube\Price\Price;
+
+$price = Price::EUR(500, 2);        // 2 units of €5.00 each
+```
+
+Or modify it later using the `setUnits()` method:
+
+```php
+$price->setUnits(1.75)              // 1,75 x €5.00
+```
+
 ## Adding VAT
 
 VAT can be added in two ways: by providing its relative value (eg. 21%) or by setting its monetary value directly (eg. €2.50).
@@ -87,7 +103,10 @@ use Whitecube\Price\Price;
 
 $price = Price::USD(500, 3)->setVat(10);    // 3 x $5.00
 $amount = $price->vat();                    // $1.50
+$amountPerUnit = $price->vat(true);         // $0.50
 $percentage = $price->vatPercentage();      // 10.0
 $excl = $price->exclusive();                // $15.00
+$exclPerUnit = $price->exclusive(true);     // $5.00
 $incl = $price->inclusive();                // $16.50
+$inclPerUnit = $price->inclusive(true);     // $5.50
 ```
