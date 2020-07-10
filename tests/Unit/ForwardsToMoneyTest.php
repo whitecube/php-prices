@@ -8,9 +8,9 @@ use Whitecube\Price\Price;
 it('creates instance from Money API', function() {
     $instance = Price::EUR(500, 5);
 
-    $this->assertInstanceOf(Price::class, $instance);
-    $this->assertInstanceOf(Money::class, $instance->base());
-    $this->assertEquals(5, $instance->units());
+    assertInstanceOf(Price::class, $instance);
+    assertInstanceOf(Money::class, $instance->base());
+    assertEquals(5, $instance->units());
 });
 
 it('forwards modifications to base Money instance', function() {
@@ -19,5 +19,5 @@ it('forwards modifications to base Money instance', function() {
 
     $price->subtract(Money::EUR(100));
 
-    $this->assertTrue($price->equals(Money::EUR(400)));
+    assertTrue($price->equals(Money::EUR(400)));
 });
