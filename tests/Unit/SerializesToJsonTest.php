@@ -14,14 +14,14 @@ it('serializes basic price data', function() {
 
     $data = json_decode($json, true);
 
-    $this->assertTrue(is_array($data));
-    $this->assertEquals(500, $data['base'] ?? null);
-    $this->assertEquals('EUR', $data['currency'] ?? null);
-    $this->assertEquals(3, $data['units'] ?? null);
-    $this->assertEquals(10.75, $data['vat'] ?? null);
-    $this->assertTrue(is_array($data['total'] ?? null));
-    $this->assertEquals(1500, $data['total']['exclusive'] ?? null);
-    $this->assertEquals(1661, $data['total']['inclusive'] ?? null);
+    assertTrue(is_array($data));
+    assertEquals(500, $data['base'] ?? null);
+    assertEquals('EUR', $data['currency'] ?? null);
+    assertEquals(3, $data['units'] ?? null);
+    assertEquals(10.75, $data['vat'] ?? null);
+    assertTrue(is_array($data['total'] ?? null));
+    assertEquals(1500, $data['total']['exclusive'] ?? null);
+    assertEquals(1661, $data['total']['inclusive'] ?? null);
 });
 
 it('hydrates instance from JSON string', function() {
@@ -29,10 +29,10 @@ it('hydrates instance from JSON string', function() {
 
     $instance = Price::json(json_encode($price));
 
-    $this->assertInstanceOf(Price::class, $instance);
-    $this->assertTrue(Money::EUR(500)->equals($instance->base()));
-    $this->assertEquals(3, $instance->units());
-    $this->assertEquals(10.75, $instance->vatPercentage());
+    assertInstanceOf(Price::class, $instance);
+    assertTrue(Money::EUR(500)->equals($instance->base()));
+    assertEquals(3, $instance->units());
+    assertEquals(10.75, $instance->vatPercentage());
 });
 
 it('hydrates instance from JSON array', function() {
@@ -49,8 +49,8 @@ it('hydrates instance from JSON array', function() {
 
     $instance = Price::json($data);
 
-    $this->assertInstanceOf(Price::class, $instance);
-    $this->assertTrue(Money::EUR(500)->equals($instance->base()));
-    $this->assertEquals(3, $instance->units());
-    $this->assertEquals(10.75, $instance->vatPercentage());
+    assertInstanceOf(Price::class, $instance);
+    assertTrue(Money::EUR(500)->equals($instance->base()));
+    assertEquals(3, $instance->units());
+    assertEquals(10.75, $instance->vatPercentage());
 });

@@ -14,9 +14,9 @@ it('can add a callable modifier', function() {
         return $value->multiply(1.5);
     });
 
-    $this->assertInstanceOf(Price::class, $price);
+    assertInstanceOf(Price::class, $price);
 
-    $this->assertTrue(Money::EUR(750)->equals($price->exclusive()));
+    assertTrue(Money::EUR(750)->equals($price->exclusive()));
 });
 
 it('can add a modifier instance', function() {
@@ -28,9 +28,9 @@ it('can add a modifier instance', function() {
 
     $price = Price::EUR(500)->addModifier($modifier);
 
-    $this->assertInstanceOf(Price::class, $price);
+    assertInstanceOf(Price::class, $price);
 
-    $this->assertTrue(Money::EUR(1000)->equals($price->exclusive()));
+    assertTrue(Money::EUR(1000)->equals($price->exclusive()));
 });
 
 it('can add a custom amendable modifier instance', function() {
@@ -38,41 +38,41 @@ it('can add a custom amendable modifier instance', function() {
 
     $price = Price::EUR(500)->addModifier($modifier);
 
-    $this->assertInstanceOf(Price::class, $price);
+    assertInstanceOf(Price::class, $price);
 
-    $this->assertTrue(Money::EUR(625)->equals($price->exclusive()));
+    assertTrue(Money::EUR(625)->equals($price->exclusive()));
 });
 
 it('can add a custom amendable modifier classname', function() {
     $price = Price::EUR(500)->addModifier(AmendableModifier::class);
 
-    $this->assertInstanceOf(Price::class, $price);
+    assertInstanceOf(Price::class, $price);
 
-    $this->assertTrue(Money::EUR(625)->equals($price->exclusive()));
+    assertTrue(Money::EUR(625)->equals($price->exclusive()));
 });
 
 it('can add a custom amendable modifier classname with custom arguments', function() {
     $price = Price::EUR(500)->addModifier(CustomAmendableModifier::class, Money::EUR(250));
 
-    $this->assertInstanceOf(Price::class, $price);
+    assertInstanceOf(Price::class, $price);
 
-    $this->assertTrue(Money::EUR(750)->equals($price->exclusive()));
+    assertTrue(Money::EUR(750)->equals($price->exclusive()));
 });
 
 it('can add a numeric modifier', function() {
     $price = Price::EUR(500)->addModifier('-100');
 
-    $this->assertInstanceOf(Price::class, $price);
+    assertInstanceOf(Price::class, $price);
 
-    $this->assertTrue(Money::EUR(400)->equals($price->exclusive()));
+    assertTrue(Money::EUR(400)->equals($price->exclusive()));
 });
 
 it('can add a Money modifier instance', function() {
     $price = Price::EUR(500)->addModifier(Money::EUR(150));
 
-    $this->assertInstanceOf(Price::class, $price);
+    assertInstanceOf(Price::class, $price);
 
-    $this->assertTrue(Money::EUR(650)->equals($price->exclusive()));
+    assertTrue(Money::EUR(650)->equals($price->exclusive()));
 });
 
 it('cannot add a NULL modifier', function() {
@@ -100,9 +100,9 @@ it('can add a tax modifier', function() {
         return $value->add(Money::EUR(50));
     });
 
-    $this->assertInstanceOf(Price::class, $price);
+    assertInstanceOf(Price::class, $price);
 
-    $this->assertTrue(Money::EUR(550)->equals($price->exclusive()));
+    assertTrue(Money::EUR(550)->equals($price->exclusive()));
 });
 
 it('can add a discount modifier', function() {
@@ -110,9 +110,9 @@ it('can add a discount modifier', function() {
         return $value->subtract(Money::EUR(50));
     });
 
-    $this->assertInstanceOf(Price::class, $price);
+    assertInstanceOf(Price::class, $price);
 
-    $this->assertTrue(Money::EUR(450)->equals($price->exclusive()));
+    assertTrue(Money::EUR(450)->equals($price->exclusive()));
 });
 
 it('can apply modifiers before computing VAT', function() {
@@ -123,8 +123,8 @@ it('can apply modifiers before computing VAT', function() {
 
     $vat = $price->vat();
 
-    $this->assertTrue(Money::EUR(63)->equals($vat));
-    $this->assertTrue(Money::EUR(788)->equals($price->inclusive()));
+    assertTrue(Money::EUR(63)->equals($vat));
+    assertTrue(Money::EUR(788)->equals($price->inclusive()));
 });
 
 it('can return whole modification history', function() {
@@ -134,16 +134,16 @@ it('can return whole modification history', function() {
 
     $history = $price->modifications();
 
-    $this->assertTrue(is_array($history));
-    $this->assertEquals(2, count($history));
+    assertTrue(is_array($history));
+    assertEquals(2, count($history));
 
-    $this->assertEquals('foo-bar', $history[0]['key'] ?? null);
-    $this->assertTrue(Money::EUR(125)->equals($history[0]['amount']));
+    assertEquals('foo-bar', $history[0]['key'] ?? null);
+    assertTrue(Money::EUR(125)->equals($history[0]['amount']));
 
-    $this->assertEquals('bar-foo', $history[1]['key'] ?? null);
-    $this->assertTrue(Money::EUR(100)->equals($history[1]['amount']));
+    assertEquals('bar-foo', $history[1]['key'] ?? null);
+    assertTrue(Money::EUR(100)->equals($history[1]['amount']));
 
-    $this->assertTrue(Money::EUR(725)->equals($price->exclusive()));
+    assertTrue(Money::EUR(725)->equals($price->exclusive()));
 });
 
 it('can return filtered modification history', function() {
@@ -154,10 +154,10 @@ it('can return filtered modification history', function() {
 
     $history = $price->modifications(Modifier::TYPE_DISCOUNT);
 
-    $this->assertTrue(is_array($history));
-    $this->assertEquals(1, count($history));
+    assertTrue(is_array($history));
+    assertEquals(1, count($history));
 
-    $this->assertTrue(Money::EUR(-100)->equals($history[0]['amount']));
+    assertTrue(Money::EUR(-100)->equals($history[0]['amount']));
 
-    $this->assertTrue(Money::EUR(625)->equals($price->exclusive()));
+    assertTrue(Money::EUR(625)->equals($price->exclusive()));
 });
