@@ -38,6 +38,17 @@ $multiple = Price::EUR(500, 4);                 // 4 x €5.00
 
 For more information on the available currencies and parsable formats, please take a look at [`moneyphp/money`'s documentation](http://moneyphp.org/).
 
+Additionnaly, prices can also be parsed from "raw decimal currency" values:
+
+```php
+use Whitecube\Price\Price;
+
+$guessCurrency = Price::parseCurrency('5,5$');      // 1 x $5.50
+$forceCurrency = Price::parseEUR('10');             // 1 x €10.00
+```
+
+Parsing formatted strings is a tricky subject. More information on [parsing string values](#parsing-values) below.
+
 ### Accessing the underlying Money/Money object
 
 Once set, this base value can be accessed using the `base()` method.
@@ -355,6 +366,30 @@ $price = Price::json($json);    // 4 x $9.99 with 6% VAT each
 ```
 
 > 💡 **Nice to know**: you can also use `Price::json()` in order to create a Price object from an associative array, as long as it contains the `base`, `currency`, `units` and `vat` keys.
+
+## Parsing values
+
+There are a few available methods that will allow to transform a monetary string value into a Price object. The generic `parseCurrency` method will try to guess the currency type from the given string:
+
+```php
+use Whitecube\Price\Price;
+
+$fromIsoCode = Price::parseCurrency('USD 5.50');    // 1 x $5.50
+$fromSymbol = Price::parseCurrency('10€');          // 1 x €10.00
+```
+
+For this to work, the string should **always** contain an indication on the currency being used (either a valid ISO code or symbol).
+
+When you're sure which ISO Currency is concerned, you should directly use its dedicated parser method (`parse[ISO-code]`):
+
+```php
+use Whitecube\Price\Price;
+
+$priceEUR = Price::parseEUR('5,5 $');       // 1 x €5.50
+$priceUSD = Price::parseUSD('0.103');       // 1 x $0.10
+```
+
+When using dedicated currency parsers, all units/symbols and non-numerical characters are ignored.
 
 ---
 
