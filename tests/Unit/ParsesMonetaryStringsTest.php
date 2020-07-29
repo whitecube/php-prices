@@ -36,3 +36,15 @@ it('parses uncommon decimal values', function() {
     assertTrue(Money::EUR(0)->equals(Price::parseEUR('foo')->exclusive()));
     assertTrue(Money::EUR(650)->equals(Price::parseEUR('bar 6.50')->exclusive()));
 });
+
+it('behaves as a regular instanciator when parsing decimal values', function() {
+    $guess = Price::parseCurrency('50,1 EUR', 4);
+
+    assertTrue(Money::EUR(5010)->equals($guess->base()));
+    assertTrue(Money::EUR(20040)->equals($guess->base(false)));
+
+    $force = Price::parseUSD('80.5', 5);
+
+    assertTrue(Money::USD(8050)->equals($force->base()));
+    assertTrue(Money::USD(40250)->equals($force->base(false)));
+});
