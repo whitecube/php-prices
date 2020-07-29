@@ -364,7 +364,7 @@ By default, all handled monetary values are wrapped into a `Money\Money` object.
 Sometimes you'll need to access the `Money\Money` object's raw value, for example if you wish to store the value in the database. This is possible using on of these shortcut `amount` methods. Please remember that the raw values are treated as strings (instead of integers or floats):
 
 ```php
-// 5 x €6.00 with 10% VAT and €1.00 discount after VAT
+// 5 x €6.00 with 10% VAT and €1.00 discount each (after VAT)
 $price = Price::EUR(600, 5)
     ->setVat(10)
     ->addDiscount(function(Money $value) {
@@ -403,7 +403,7 @@ There are a few available methods that will allow to transform a monetary string
 use Whitecube\Price\Price;
 
 $fromIsoCode = Price::parseCurrency('USD 5.50');    // 1 x $5.50
-$fromSymbol = Price::parseCurrency('10€');          // 1 x €10.00
+$fromSymbol = Price::parseCurrency('10€', 2);       // 2 x €10.00
 ```
 
 For this to work, the string should **always** contain an indication on the currency being used (either a valid ISO code or symbol).
@@ -414,7 +414,7 @@ When you're sure which ISO Currency is concerned, you should directly use its de
 use Whitecube\Price\Price;
 
 $priceEUR = Price::parseEUR('5,5 $');       // 1 x €5.50
-$priceUSD = Price::parseUSD('0.103');       // 1 x $0.10
+$priceUSD = Price::parseUSD('0.103', 8);    // 8 x $0.10
 ```
 
 When using dedicated currency parsers, all units/symbols and non-numerical characters are ignored.
