@@ -78,6 +78,17 @@ class Price implements \JsonSerializable
     }
 
     /**
+     * Directly return the price's base Money amount
+     *
+     * @param bool $perUnit
+     * @return string
+     */
+    public function baseAmount($perUnit = true)
+    {
+        return $this->base($perUnit)->getAmount();
+    }
+
+    /**
      * Define the total units count
      *
      * @param mixed $value
@@ -163,6 +174,28 @@ class Price implements \JsonSerializable
     }
 
     /**
+     * Directly return the price's exclusive Money amount
+     *
+     * @param bool $perUnit
+     * @return string
+     */
+    public function exclusiveAmount($perUnit = true)
+    {
+        return $this->exclusive($perUnit)->getAmount();
+    }
+
+    /**
+     * Alias of exclusiveAmount
+     *
+     * @param bool $perUnit
+     * @return string
+     */
+    public function amount($perUnit = true)
+    {
+        return $this->exclusiveAmount($perUnit);
+    }
+
+    /**
      * Return the INCL. Money value
      *
      * @param bool $perUnit
@@ -176,6 +209,17 @@ class Price implements \JsonSerializable
 
         return $this->exclusive($perUnit)
             ->add($this->vat($perUnit));
+    }
+
+    /**
+     * Directly return the price's inclusive Money amount
+     *
+     * @param bool $perUnit
+     * @return string
+     */
+    public function inclusiveAmount($perUnit = true)
+    {
+        return $this->inclusive($perUnit)->getAmount();
     }
 
     /**
