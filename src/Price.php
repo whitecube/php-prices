@@ -7,6 +7,10 @@ use Money\Currency;
 
 class Price implements \JsonSerializable
 {
+    use ParsesPrices {
+        ParsesPrices::__callStatic as callPriceParser;
+    }
+
     /**
      * The root price
      *
@@ -402,9 +406,15 @@ class Price implements \JsonSerializable
      */
     public static function __callStatic($method, $arguments)
     {
-        $base = new Money($arguments[0], new Currency($method));
+        try {
+            $price = static::callPriceParser($method, $arguments);
+        } catch (\BadMethodCallException $e) {
+            $base = new Money($arguments[0], new Currency($method));
 
-        return new static($base, $arguments[1] ?? 1);
+            $price = new static($base, $arguments[1] ?? 1);
+        }
+
+        return $price;
     }
 
     /**
