@@ -2,6 +2,7 @@
 
 namespace Whitecube\Price;
 
+use Money\Currency;
 use Money\Currencies\ISOCurrencies;
 
 class Parser
@@ -64,19 +65,49 @@ class Parser
     {
         $symbols = static::getSymbols();
 
-        $patterns = array_map(function($symbol) {
-            return '/' . implode('', array_map(function($char) {
-                return '\\' . $char;
-            }, str_split($symbol))) . '/';
-        }, array_values($symbols));
-
-        $string = preg_replace($patterns, array_keys($symbols), $this->original, 1);
-
         foreach ((new ISOCurrencies()) as $currency) {
-            if(strpos($string, $currency->getCode()) > -1) return $currency->getCode();
+            $symbol = $symbols[$currency->getCode()] ?? null;
+            $pattern = $this->getCurrencyPattern($currency, $symbol);
+
+            if(!preg_match($pattern, $this->original)) continue;
+
+            return $currency->getCode();
         }
 
         return null;
+    }
+
+    /**
+     * Generate a Regex string for given currency
+     *
+     * @return string
+     */
+    protected function getCurrencyPattern(Currency $currency, $symbol = null)
+    {
+        $pattern = '/^(?:(?:.*?[^\d]?\s)|(?:.*?\d))?(';
+        $pattern .= $this->getEscapedPatternString($currency->getCode());
+
+        if($symbol) {
+            $pattern .= '|';
+            $pattern .= $this->getEscapedPatternString($symbol);
+        }
+
+        $pattern .= ')(?:(?:\s[^\d]?.*?)|(?:\d.*?))?$/';
+
+        return $pattern;
+    }
+
+    /**
+     * Escape each character for the given regex string
+     *
+     * @param string $search
+     * @return string
+     */
+    protected function getEscapedPatternString($search)
+    {
+        return implode('', array_map(function($char) {
+            return '\\' . $char;
+        }, str_split($search)));
     }
 
     /**
