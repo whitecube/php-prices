@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use Money\Money;
+use Money\Currency;
 use Whitecube\Price\Price;
 
 it('can access the base amount', function() {
@@ -35,4 +36,13 @@ it('can access the inclusive amount', function() {
 
     assertEquals('550', $instance->inclusiveAmount());
     assertEquals('2750', $instance->inclusiveAmount(false));
+});
+
+it('can access the currency object', function() {
+    $instance = Price::EUR(100);
+
+    $currency = $instance->currency();
+
+    assertInstanceOf(Currency::class, $currency);
+    assertTrue($currency->equals(new Currency('EUR')));
 });

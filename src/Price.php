@@ -67,6 +67,16 @@ class Price implements \JsonSerializable
     }
 
     /**
+     * Return the price's underlying currency instance
+     *
+     * @return \Money\Currency
+     */
+    public function currency()
+    {
+        return $this->base->getCurrency();
+    }
+
+    /**
      * Return the price's base value
      *
      * @param bool $perUnit

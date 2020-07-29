@@ -57,6 +57,12 @@ Once set, this base value can be accessed using the `base()` method.
 $base = $price->base();
 ```
 
+Getting the `Money\Currency` instance is just as easy:
+
+```php
+$currency = $price->currency();
+```
+
 ### Modifying the base price
 
 The price object will forward all the `Money\Money` API method calls to its base value.
