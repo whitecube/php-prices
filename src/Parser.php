@@ -105,7 +105,10 @@ class Parser
      */
     protected function getEscapedPatternString($search)
     {
-        return implode('', array_map(function($char) {
+        $escaped = ['(',')','.',':','^','$','[',']','?','!','+','=','*',',','{','}','\\','-'];
+
+        return implode('', array_map(function($char) use ($escaped) {
+            if(!in_array($char, $escaped)) return $char;
             return '\\' . $char;
         }, str_split($search)));
     }
