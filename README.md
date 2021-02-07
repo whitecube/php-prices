@@ -50,8 +50,8 @@ For convenience, it is also possible to use the shorthand Money factory methods 
 ```php
 use Whitecube\Price\Price;
 
-$simple = Price::of(5, 'EUR');                  // 1 x €5.00
-$minor = Price::ofMinor(500, 'EUR');            // 1 x €5.00
+$major = Price::of(5, 'EUR');                   // 1 x €5.00
+$minor = Price::ofMinor(500, 'USD');            // 1 x $5.00
 ```
 
 Using these static calls, you cannot define quantities or units directly with the constructor methods.
@@ -75,12 +75,13 @@ For a list of all available ISO 4217 currencies, take a look at [Brick/Money's i
 
 ### From parsed string values
 
-Additionnaly, prices can also be parsed from "raw currency value" strings. This method can be useful but should always be used carefully since it may produce unexpected results in some edge-case situations:
+Additionnaly, prices can also be parsed from "raw currency value" strings. This method can be useful but should always be used carefully since it may produce unexpected results in some edge-case situations, especially when "guessing" the currency :
 
 ```php
 use Whitecube\Price\Price;
 
 $guessCurrency = Price::parse('5,5$');          // 1 x $5.50
+$betterGuess = Price::parse('JMD 5.50');        // 1 x $5.50
 $forceCurrency = Price::parse('10', 'EUR');     // 1 x €10.00
 ```
 
