@@ -129,6 +129,43 @@ $perUnit = $price->inclusive(true);             // Brick\Money\Money
 $allUnits = $price->inclusive();                // Brick\Money\Money
 ```
 
+### Comparing amounts
+
+It is possible to check whether a price object's **total inclusive amount** is greater, lesser or equal to another value using the `compareTo` method:
+
+```php
+$price = Price::USD(500, 2);                    // 2 x $5.00
+
+$price->compareTo(999);                         // 1
+$price->compareTo(1000);                        // 0
+$price->compareTo(1001);                        // -1
+
+$price->compareTo(Money::of(10, 'USD'));        // 0
+$price->compareTo(Price::USD(250, 4));          // 0
+```
+
+For convenience there also is an `equals()` method:
+
+```php
+$price->equals(999);                            // false
+$price->equals(1000);                           // true
+$price->equals(Money::of(10, 'USD'));           // true
+$price->equals(Price::USD(250, 4));             // true
+```
+
+If you don't want to compare final modified values, there is a `compareBaseTo` method:
+
+```php
+$price = Price::USD(500, 2);                    // 2 x $5.00
+
+$price->compareBaseTo(499);                     // 1
+$price->compareBaseTo(500);                     // 0
+$price->compareBaseTo(501);                     // -1
+
+$price->compareBaseTo(Money::of(5, 'USD'));     // 0
+$price->compareBaseTo(Price::USD(500, 4));      // 0
+```
+
 ## Modifying the base price
 
 The price object will forward all the `Brick\Money\Money` API method calls to its base value.
