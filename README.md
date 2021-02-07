@@ -22,12 +22,12 @@ It is common practice and always best to work with amounts represented in **the 
 
 There are several convenient ways to obtain a `Price` instance :
 
-| Method                                           | Using major values                | Using minor values                  | Defining units                   |
-| :----------------------------------------------- | :-------------------------------- | :---------------------------------- | :------------------------------- |
-| [Constructor](#from-constructor)                 | `new Price(Money $base)`          | `new Price(Money $base)`            | `new Price(Money $base, $units)` |
-| [Brick/Money API](#from-brickmoney-like-methods) | `Price::of($major, $currency)`    | `Price::ofMinor($minor, $currency)` | -                                |
-| [Currency API](#from-currency-code-methods)      | -                                 | `Price::EUR($minor)`                | `Price::USD($minor, $units)`     |
-| [Parsed strings](#from-parsed-string-values)     | `Price::parse($value, $currency)` | -                                   | -                                |
+| Method                                           | Using major values                | Using minor values                  | Defining units                            |
+| :----------------------------------------------- | :-------------------------------- | :---------------------------------- | :---------------------------------------- |
+| [Constructor](#from-constructor)                 | `new Price(Money $base)`          | `new Price(Money $base)`            | `new Price(Money $base, $units)`          |
+| [Brick/Money API](#from-brickmoney-like-methods) | `Price::of($major, $currency)`    | `Price::ofMinor($minor, $currency)` | -                                         |
+| [Currency API](#from-currency-code-methods)      | -                                 | `Price::EUR($minor)`                | `Price::USD($minor, $units)`              |
+| [Parsed strings](#from-parsed-string-values)     | `Price::parse($value, $currency)` | -                                   | `Price::parse($value, $currency, $units)` |
 
 ### From Constructor
 
@@ -83,9 +83,10 @@ use Whitecube\Price\Price;
 $guessCurrency = Price::parse('5,5$');          // 1 x $5.50
 $betterGuess = Price::parse('JMD 5.50');        // 1 x $5.50
 $forceCurrency = Price::parse('10', 'EUR');     // 1 x €10.00
-```
 
-Using these static calls, you cannot define quantities or units directly with the constructor methods.
+$multiple = Price::parse('6.008 EUR', null, 4); // 4 x €6.01
+$force = Price::parse('-5 EUR', 'USD', 4);      // 4 x $-5.00
+```
 
 Parsing formatted strings is a tricky subject. More information on [parsing string values](#parsing-values) below.
 
