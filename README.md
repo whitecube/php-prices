@@ -100,21 +100,36 @@ $force = Price::parse('-5 EUR', 'USD', 4);      // 4 x $-5.00
 
 Parsing formatted strings is a tricky subject. More information on [parsing string values](#parsing-values) below.
 
-## Accessing the underlying Brick\Money\Money object
+## Accessing the Money objects (getters)
 
-Once set, this base value can be accessed using the `base()` method.
-
-```php
-$base = $price->base();
-```
-
-Getting the `Brick\Money\Currency` instance is just as easy:
+Once set, the **base amount** can be accessed using the `base()` method.
 
 ```php
-$currency = $price->currency();
+$perUnit = $price->base();                      // Brick\Money\Money
+$allUnits = $price->base(false);                // Brick\Money\Money
 ```
 
-### Modifying the base price
+Getting the **currency** instance is just as easy:
+
+```php
+$currency = $price->currency();                 // Brick\Money\Currency
+```
+
+The **total exclusive amount** (with all modifiers except without VAT):
+
+```php
+$perUnit = $price->exclusive(true);             // Brick\Money\Money
+$allUnits = $price->exclusive();                // Brick\Money\Money
+```
+
+The **total inclusive amount** (with all modifiers and VAT applied):
+
+```php
+$perUnit = $price->inclusive(true);             // Brick\Money\Money
+$allUnits = $price->inclusive();                // Brick\Money\Money
+```
+
+## Modifying the base price
 
 The price object will forward all the `Brick\Money\Money` API method calls to its base value.
 
@@ -126,19 +141,18 @@ use Brick\Money\Money;
 
 $price = Price::ofMinor(500, 'USD')->setUnits(2);   // 2 x $5.00
 
-$price->plus(100)                                   // 2 x $6.00
-    ->dividedBy(2)                                  // 2 x $3.00
-    ->minus(Money::ofMinor(600, 'USD'))             // 2 x $-3.00
-    ->abs();                                        // 2 x $3.00
-
-$price->equals(Money::ofMinor(300, 'USD'));         // true
+$price->minus('2.00')                               // 2 x $3.00
+    ->plus('1.50')                                  // 2 x $4.50
+    ->dividedBy(2)                                  // 2 x $2.25
+    ->multipliedBy(-3)                              // 2 x $-6.75
+    ->abs();                                        // 2 x $6.75
 ```
 
 Please refer to [`brick/money`'s documentation](https://github.com/brick/money) for the full list of available features.
 
 > 💡 **Nice to know**: Most of the time, you'll be using modifiers to alter a price since its base value is meant to be somehow constant. For more information on modifiers, please take at the ["Adding modifiers" section](#adding-modifiers) below.
 
-## Units & quantities
+## Setting units & quantities
 
 This package's default behavior is to consider its base price as the "per unit" price. When no units have been specified, it defaults to `1`. You can set the units amount during instantiation:
 
@@ -161,7 +175,7 @@ You can return the units count using the `units()` method:
 $quantity = $price->units();                            // 1.75
 ```
 
-## Adding VAT
+## Setting VAT
 
 VAT can be added in two ways: by providing its relative value (eg. 21%) or by setting its monetary value directly (eg. €2.50).
 
@@ -185,15 +199,11 @@ $price = Price::EUR(500, 3)->setVat(10);    // 3 x €5.00
 $percentage = $price->vatPercentage();      // 10.0
 
 $vat = $price->vat();                       // €1.50
-$excl = $price->exclusive();                // €15.00
-$incl = $price->inclusive();                // €16.50
 
 $vatPerUnit = $price->vat(true);            // €0.50
-$exclPerUnit = $price->exclusive(true);     // €5.00
-$inclPerUnit = $price->inclusive(true);     // €5.50
 ```
 
-## Adding modifiers
+## Setting modifiers
 
 Modifiers are all the custom operations a business needs to apply on a price before displaying it on a bill. They range from discounts to taxes, including custom rules and coupons. These are the main reason this package exists.
 
