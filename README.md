@@ -18,7 +18,7 @@ composer require whitecube/php-prices
 
 Each `Price` object has a `Brick\Money\Money` instance which is considered to be the item's raw, per-unit & exclusive amount. All the composition operations, such as adding VAT or applying a discount, are added on top of this base value.
 
-It is always best to work with amounts are represented in **the smallest currency unit (minor values)** such as "cents".
+It is always best to work with amounts represented in **the smallest currency unit (minor values)** such as "cents".
 
 You can set this basic value by instantiating the Price directly with the desired `Brick\Money\Money` instance:
 
