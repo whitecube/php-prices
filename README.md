@@ -200,6 +200,8 @@ use Whitecube\Price\Price;
 use Brick\Money\Money;
 
 $price = new Price(Money::ofMinor(500, 'EUR'), 2);      // 2 units of €5.00 each
+$same = Price::EUR(500, 2);                             // idem
+$again = Price::parse('5.00', 'EUR', 2);                // idem
 ```
 
 ...or modify it later using the `setUnits()` method:
