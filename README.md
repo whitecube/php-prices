@@ -22,11 +22,12 @@ It is common practice and always best to work with amounts represented in **the 
 
 There are several convenient ways to obtain a `Price` instance :
 
-| From constructor                 | From Brick/Money-like methods       | From currency-code methods   | From parsed string values         |
-| -------------------------------- | ----------------------------------- | ---------------------------- | --------------------------------- |
-| `new Price(Money $base)`         | `Price::of($major, $currency)`      | `Price::EUR($minor)`         | `Price::parse($value)`            |
-| `new Price(Money $base, $units)` | `Price::ofMinor($minor, $currency)` | `Price::USD($minor, $units)` | `Price::parse($value, $currency)` |
-
+| Method                                                         | Using major values                | Using minor values                  | Defining units                   |
+| :------------------------------------------------------------- | :-------------------------------- | :---------------------------------- | :------------------------------- |
+| [From constructor](#from-constructor)                          | `new Price(Money $base)`          | `new Price(Money $base)`            | `new Price(Money $base, $units)` |
+| [From Brick/Money-like methods](#from-brickmoney-like-methods) | `Price::of($major, $currency)`    | `Price::ofMinor($minor, $currency)` | -                                |
+| [From currency-code methods](#from-currency-code-methods)      | -                                 | `Price::EUR($minor)`                | `Price::USD($minor, $units)`     |
+| [From parsed string values](#from-parsed-string-values)        | `Price::parse($value, $currency)` | -                                   | -                                |
 
 ### From Constructor
 
