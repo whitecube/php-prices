@@ -68,3 +68,19 @@ it('creates instances from static Money API methods with one default unit', func
     expect($major->__toString())->toBe('EUR 6.00');
     expect($major->units())->toBe(floatval(1));
 });
+
+it('creates instances from parsed string with one default unit', function() {
+    $price = Price::parse('2.20', 'EUR');
+
+    expect($price)->toBeInstanceOf(Price::class);
+    expect($price->__toString())->toBe('EUR 2.20');
+    expect($price->units())->toBe(floatval(1));
+});
+
+it('creates instances from parsed string with given units', function() {
+    $price = Price::parse('2.20', 'EUR', 4);
+
+    expect($price)->toBeInstanceOf(Price::class);
+    expect($price->__toString())->toBe('EUR 2.20');
+    expect($price->units())->toBe(floatval(4));
+});

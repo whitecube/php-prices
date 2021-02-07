@@ -9,14 +9,15 @@ use Brick\Money\Money;
 trait ParsesPrices
 {
     /**
-     * Return the price's base value
+     * Create an instance from a major-value string, with 
+     * or without defined currency (in which case it guesses).
      *
-     * @param mixed $value
+     * @param string $value
+     * @param null|mixed $currency
      * @param int $units
-     * @param null|string $currency
      * @return \Whitecube\Price\Price
      */
-    static public function parse($value, $currency = null)
+    static public function parse($value, $currency = null, $units = 1)
     {
         $parser = new Parser($value);
 
@@ -25,6 +26,6 @@ trait ParsesPrices
             $currency ?? $parser->extractCurrency()
         );
 
-        return new Price($value);
+        return new Price($value, $units);
     }
 }

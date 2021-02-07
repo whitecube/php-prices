@@ -6,33 +6,34 @@ use Brick\Money\Money;
 use Whitecube\Price\Price;
 
 it('parses decimal (point) currency values', function() {
-    expect(Price::parse('$1.10')->equals(Money::of(1.1,'ARS')))->toBeTrue();
-    expect(Price::parse('$ 2.20')->equals(Money::of(2.2,'ARS')))->toBeTrue();
-    expect(Price::parse('$ - 3.30')->equals(Money::of(-3.3,'ARS')))->toBeTrue();
-    expect(Price::parse('4.40$')->equals(Money::of(4.4,'ARS')))->toBeTrue();
-    expect(Price::parse('5.50 $')->equals(Money::of(5.5,'ARS')))->toBeTrue();
-    expect(Price::parse('6.60 - $')->equals(Money::of(6.6,'ARS')))->toBeTrue();
+    expect(Price::parse('$1.10')->__toString())->toBe('ARS 1.10');
+    expect(Price::parse('$ 2.20')->__toString())->toBe('ARS 2.20');
+    expect(Price::parse('$ - 3.30')->__toString())->toBe('ARS -3.30');
+    expect(Price::parse('4.40$')->__toString())->toBe('ARS 4.40');
+    expect(Price::parse('5.50 $')->__toString())->toBe('ARS 5.50');
+    expect(Price::parse('6.60 - $')->__toString())->toBe('ARS 6.60');
 });
 
 it('parses decimal (comma) currency values', function() {
-    expect(Price::parse('€1,10')->equals(Money::of(1.1,'EUR')))->toBeTrue();
-    expect(Price::parse('€ 2,20')->equals(Money::of(2.2,'EUR')))->toBeTrue();
-    expect(Price::parse('€ - 3,30')->equals(Money::of(-3.3,'EUR')))->toBeTrue();
-    expect(Price::parse('4,40€')->equals(Money::of(4.4,'EUR')))->toBeTrue();
-    expect(Price::parse('5,50 €')->equals(Money::of(5.5,'EUR')))->toBeTrue();
-    expect(Price::parse('6,60 - €')->equals(Money::of(6.6,'EUR')))->toBeTrue();
+    expect(Price::parse('€1,10')->__toString())->toBe('EUR 1.10');
+    expect(Price::parse('€ 2,20')->__toString())->toBe('EUR 2.20');
+    expect(Price::parse('€ - 3,30')->__toString())->toBe('EUR -3.30');
+    expect(Price::parse('4,40€')->__toString())->toBe('EUR 4.40');
+    expect(Price::parse('5,50 €')->__toString())->toBe('EUR 5.50');
+    expect(Price::parse('6,60 - €')->__toString())->toBe('EUR 6.60');
 });
 
 it('parses decimal values into requested currency', function() {
-    expect(Price::parse('$1,10', 'EUR')->equals(Money::of(1.1,'EUR')))->toBeTrue();
-    expect(Price::parse('2.20', 'EUR')->equals(Money::of(2.2,'EUR')))->toBeTrue();
+    expect(Price::parse('$1,10', 'EUR')->__toString())->toBe('EUR 1.10');
+    expect(Price::parse('2.20', 'EUR')->__toString())->toBe('EUR 2.20');
 });
 
 it('parses uncommon decimal values', function() {
-    expect(Price::parse('1', 'EUR')->equals(Money::of(1,'EUR')))->toBeTrue();
-    expect(Price::parse('2.2', 'EUR')->equals(Money::of(2.2,'EUR')))->toBeTrue();
-    expect(Price::parse('3.003', 'EUR')->equals(Money::of(3,'EUR')))->toBeTrue();
-    expect(Price::parse('4.005', 'EUR')->equals(Money::of(4.01,'EUR')))->toBeTrue();
-    expect(Price::parse('foo', 'EUR')->equals(Money::of(0,'EUR')))->toBeTrue();
-    expect(Price::parse('bar 6.50', 'EUR')->equals(Money::of(6.5,'EUR')))->toBeTrue();
+    expect(Price::parse('1', 'EUR')->__toString())->toBe('EUR 1.00');
+    expect(Price::parse('2.2', 'EUR')->__toString())->toBe('EUR 2.20');
+    expect(Price::parse('3.003', 'EUR')->__toString())->toBe('EUR 3.00');
+    expect(Price::parse('4.005', 'EUR')->__toString())->toBe('EUR 4.01');
+    expect(Price::parse('5.008', 'EUR')->__toString())->toBe('EUR 5.01');
+    expect(Price::parse('foo', 'EUR')->__toString())->toBe('EUR 0.00');
+    expect(Price::parse('bar 6.50', 'EUR')->__toString())->toBe('EUR 6.50');
 });
