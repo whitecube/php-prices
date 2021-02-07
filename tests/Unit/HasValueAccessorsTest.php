@@ -6,12 +6,16 @@ use Brick\Money\Money;
 use Brick\Money\Currency;
 use Whitecube\Price\Price;
 
-// TODO : Define what to do with these tests
+it('can convert to string displaying inclusive total amount', function() {
+    $price = Price::EUR(100, 5)->setVat(10);
+
+    expect($price->__toString())->toBe('EUR 5.50');
+});
 
 it('can access the currency object', function() {
-    $instance = Price::EUR(100);
+    $price = Price::EUR(100);
 
-    $currency = $instance->currency();
+    $currency = $price->currency();
 
     expect($currency)->toBeInstanceOf(Currency::class);
     expect($currency->getCurrencyCode())->toBe('EUR');

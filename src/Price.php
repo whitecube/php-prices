@@ -427,6 +427,17 @@ class Price implements \JsonSerializable
     }
 
     /**
+     * Convert this price object into a readable 
+     * total & inclusive money string
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->inclusive()->__toString();
+    }
+
+    /**
      * {@inheritdoc}
      *
      * @return array

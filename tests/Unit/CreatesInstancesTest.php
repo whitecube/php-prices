@@ -19,7 +19,7 @@ it('creates instances from constructor with given units', function() {
 
     $price = new Price($money, 5);
 
-    expect($price->__toString())->toBe('EUR 5.00');
+    expect($price->__toString())->toBe('EUR 25.00');
     expect($price->units())->toBe(floatval(5));
 });
 
@@ -41,13 +41,13 @@ it('creates instances from currency code static method with given units', functi
     $uppercase = Price::JMD(100, 5);
 
     expect($uppercase)->toBeInstanceOf(Price::class);
-    expect($uppercase->__toString())->toBe('JMD 1.00');
+    expect($uppercase->__toString())->toBe('JMD 5.00');
     expect($uppercase->units())->toBe(floatval(5));
 
     $lowercase = Price::jmd(200, 5);
 
     expect($lowercase)->toBeInstanceOf(Price::class);
-    expect($lowercase->__toString())->toBe('JMD 2.00');
+    expect($lowercase->__toString())->toBe('JMD 10.00');
     expect($lowercase->units())->toBe(floatval(5));
 });
 
@@ -81,6 +81,6 @@ it('creates instances from parsed string with given units', function() {
     $price = Price::parse('2.20', 'EUR', 4);
 
     expect($price)->toBeInstanceOf(Price::class);
-    expect($price->__toString())->toBe('EUR 2.20');
+    expect($price->__toString())->toBe('EUR 8.80');
     expect($price->units())->toBe(floatval(4));
 });
