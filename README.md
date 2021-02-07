@@ -14,18 +14,27 @@ Using the underlying [`brick/money`](https://github.com/brick/money) library, th
 composer require whitecube/php-prices
 ```
 
-## Instantiation
+## Getting started
 
-Each `Price` object has a `Brick\Money\Money` instance which is considered to be the item's raw, per-unit & exclusive amount. All the composition operations, such as adding VAT or applying a discount, are added on top of this base value.
+Each `Price` object has a `Brick\Money\Money` instance which is considered to be the item's unchanged, per-unit & exclusive amount. All the composition operations, such as adding VAT or applying discounts, are added on top of this base value.
 
-It is always best to work with amounts represented in **the smallest currency unit (minor values)** such as "cents".
+It is common practice and always best to work with amounts represented in **the smallest currency unit (minor values)** such as "cents".
+
+There are several convenient ways to obtain a `Price` instance :
+
+| From constructor                 | From Brick/Money-like methods       | From currency-code methods   | From parsed string values         |
+| -------------------------------- | ----------------------------------- | ---------------------------- | --------------------------------- |
+| `new Price(Money $base)`         | `Price::of($major, $currency)`      | `Price::EUR($minor)`         | `Price::parse($value)`            |
+| `new Price(Money $base, $units)` | `Price::ofMinor($minor, $currency)` | `Price::USD($minor, $units)` | `Price::parse($value, $currency)` |
+
+
+### From Constructor
 
 You can set this basic value by instantiating the Price directly with the desired `Brick\Money\Money` instance:
 
 ```php
-use Whitecube\Price\Price;
 use Brick\Money\Money;
-use Money\Currency;
+use Whitecube\Price\Price;
 
 $base = new Money::ofMinor(500, 'USD');         // $5.00
 
@@ -33,19 +42,39 @@ $single = new Price($base);                     // 1 x $5.00
 $multiple = new Price($base, 4);                // 4 x $5.00
 ```
 
-For convenience, it is also possible to use the shorthand Money factory methods:
+### From Brick/Money-like methods
+
+For convenience, it is also possible to use the shorthand Money factory methods :
 
 ```php
 use Whitecube\Price\Price;
 
-$simple = Price::of(5, 'EUR');                          // 1 x €5.00
-$minor = Price::ofMinor(500, 'EUR');                    // 1 x €5.00
-$multiple = Price::ofMinor(500, 'EUR')->setUnits(4);    // 4 x €5.00
+$simple = Price::of(5, 'EUR');                  // 1 x €5.00
+$minor = Price::ofMinor(500, 'EUR');            // 1 x €5.00
 ```
 
-For more information on the available currencies and parsable formats, please take a look at [`brick/money`'s documentation](https://github.com/brick/money).
+Using these static calls, you cannot define quantities or units directly with the constructor methods.
 
-Additionnaly, prices can also be parsed from "raw decimal currency" values:
+For more information on all the available Brick/Money constructors, please take a look at [their documentation](https://github.com/brick/money).
+
+### From currency-code methods
+
+You can also create an instance directly with the intended currency and quantities using the 3-letter currency ISO codes:
+
+```php
+use Whitecube\Price\Price;
+
+$single = Price::EUR(500);                      // 1 x €5.00
+$multiple = Price::USD(500, 4);                 // 4 x $5.00
+```
+
+Using these static calls, all monetary values are considered minor values (e.g. cents).
+
+For a list of all available ISO 4217 currencies, take a look at [Brick/Money's is-currencies definition](https://github.com/brick/money/blob/master/data/iso-currencies.php).
+
+### From parsed string values
+
+Additionnaly, prices can also be parsed from "raw currency value" strings. This method can be useful but should always be used carefully since it may produce unexpected results in some edge-case situations:
 
 ```php
 use Whitecube\Price\Price;
@@ -54,9 +83,11 @@ $guessCurrency = Price::parse('5,5$');          // 1 x $5.50
 $forceCurrency = Price::parse('10', 'EUR');     // 1 x €10.00
 ```
 
+Using these static calls, you cannot define quantities or units directly with the constructor methods.
+
 Parsing formatted strings is a tricky subject. More information on [parsing string values](#parsing-values) below.
 
-### Accessing the underlying Money/Money object
+## Accessing the underlying Brick\Money\Money object
 
 Once set, this base value can be accessed using the `base()` method.
 
