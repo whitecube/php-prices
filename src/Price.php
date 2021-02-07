@@ -11,6 +11,7 @@ class Price implements \JsonSerializable
 {
     use Concerns\OperatesOnBase;
     use Concerns\ParsesPrices;
+    use Concerns\HasUnits;
 
     /**
      * The rounding methods that should be used when calculating prices
@@ -44,7 +45,7 @@ class Price implements \JsonSerializable
     protected $vat;
 
     /**
-     * The amount of times the base price is multiplied
+     * The quantity that needs to be applied to the base price
      *
      * @var float
      */
@@ -142,29 +143,6 @@ class Price implements \JsonSerializable
         return ($perUnit)
             ? $this->base
             : $this->base->multipliedBy($this->units, static::getRounding('exclusive'));
-    }
-
-    /**
-     * Define the total units count
-     *
-     * @param mixed $value
-     * @return $this
-     */
-    public function setUnits($value)
-    {
-        $this->units = floatval(str_replace(',', '.', $value));
-
-        return $this;
-    }
-
-    /**
-     * Return the total units count
-     *
-     * @return float
-     */
-    public function units()
-    {
-        return $this->units;
     }
 
     /**

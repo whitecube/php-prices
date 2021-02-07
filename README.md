@@ -189,9 +189,11 @@ Please refer to [`brick/money`'s documentation](https://github.com/brick/money) 
 
 > 💡 **Nice to know**: Most of the time, you'll be using modifiers to alter a price since its base value is meant to be somehow constant. For more information on modifiers, please take at the ["Adding modifiers" section](#adding-modifiers) below.
 
-## Setting units & quantities
+## Setting units (quantities)
 
-This package's default behavior is to consider its base price as the "per unit" price. When no units have been specified, it defaults to `1`. You can set the units amount during instantiation:
+This package's default behavior is to consider its base price as the "per unit" price. When no units have been specified, it defaults to `1`. Since "units" can be anything from a number of undividable products to a measurement, they are always converted to floats.
+
+You can set the units amount (or "quantity" if you prefer) during instantiation:
 
 ```php
 use Whitecube\Price\Price;
@@ -200,13 +202,13 @@ use Brick\Money\Money;
 $price = new Price(Money::ofMinor(500, 'EUR'), 2);      // 2 units of €5.00 each
 ```
 
-Or modify it later using the `setUnits()` method:
+...or modify it later using the `setUnits()` method:
 
 ```php
 $price->setUnits(1.75);                                 // 1.75 x €5.00
 ```
 
-You can return the units count using the `units()` method:
+You can return the units count using the `units()` method (always `float`):
 
 ```php
 $quantity = $price->units();                            // 1.75
