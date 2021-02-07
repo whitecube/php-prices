@@ -2,7 +2,7 @@
 
 namespace Tests\Fixtures;
 
-use Money\Money;
+use Brick\Money\Money;
 
 class NonAmendableModifier
 {
@@ -40,11 +40,11 @@ class NonAmendableModifier
     /**
      * Apply the modifier on the given Money instance
      *
-     * @param \Money\Money $value
-     * @return null|\Money\Money
+     * @param \Brick\Money\Money $value
+     * @return null|\Brick\Money\Money
      */
     public function apply(Money $value) : ?Money
     {
-        return $value->multiply(10);
+        return $value->multipliedBy(10);
     }
 }

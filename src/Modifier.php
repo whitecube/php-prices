@@ -2,7 +2,7 @@
 
 namespace Whitecube\Price;
 
-use Money\Money;
+use Brick\Money\Money;
 
 class Modifier implements PriceAmendable
 {
@@ -94,8 +94,8 @@ class Modifier implements PriceAmendable
     /**
      * Apply the modifier on the given Money instance
      *
-     * @param \Money\Money $value
-     * @return \Money\Money
+     * @param \Brick\Money\Money $value
+     * @return \Brick\Money\Money
      */
     public function apply(Money $value) : ?Money
     {

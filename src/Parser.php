@@ -2,8 +2,8 @@
 
 namespace Whitecube\Price;
 
-use Money\Currency;
-use Money\Currencies\ISOCurrencies;
+use Brick\Money\Currency;
+use Brick\Money\ISOCurrencyProvider;
 
 class Parser
 {
@@ -65,13 +65,16 @@ class Parser
     {
         $symbols = static::getSymbols();
 
-        foreach ((new ISOCurrencies()) as $currency) {
-            $symbol = $symbols[$currency->getCode()] ?? null;
+        $currencies = ISOCurrencyProvider::getInstance()->getAvailableCurrencies();
+
+        foreach ($currencies as $currency) {
+            $symbol = $symbols[$currency->getCurrencyCode()] ?? null;
+
             $pattern = $this->getCurrencyPattern($currency, $symbol);
 
             if(!preg_match($pattern, $this->original)) continue;
 
-            return $currency->getCode();
+            return $currency->getCurrencyCode();
         }
 
         return null;
@@ -80,12 +83,14 @@ class Parser
     /**
      * Generate a Regex string for given currency
      *
+     * @param \Brick\Money\Currency $currency
+     * @param null|string $symbol
      * @return string
      */
     protected function getCurrencyPattern(Currency $currency, $symbol = null)
     {
         $pattern = '/^(?:(?:.*?[^\d]?\s)|(?:.*?\d))?(';
-        $pattern .= $this->getEscapedPatternString($currency->getCode());
+        $pattern .= $this->getEscapedPatternString($currency->getCurrencyCode());
 
         if($symbol) {
             $pattern .= '|';

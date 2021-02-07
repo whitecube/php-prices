@@ -2,75 +2,75 @@
 
 namespace Tests\Unit;
 
-use Money\Money;
+use Brick\Money\Money;
 use Whitecube\Price\Price;
 
 it('sets VAT from relative percentage', function() {
-    $instance = Price::EUR(200);
+    $instance = Price::ofMinor(200, 'EUR');
 
-    assertInstanceOf(Price::class, $instance->setVat(22.5));
-    assertTrue($instance->vatPercentage() === 22.5);
-    assertTrue($instance->vat()->equals(Money::EUR(45)));
+    expect($instance->setVat(22.5))->toBeInstanceOf(Price::class);
+    expect($instance->vatPercentage() === 22.5)->toBeTrue();
+    expect($instance->vat()->getAmount()->compareTo(Money::ofMinor(45, 'EUR')->getAmount()))->toBe(0);
 
-    assertInstanceOf(Price::class, $instance->setVat(10));
-    assertTrue($instance->vatPercentage() === 10.0);
-    assertTrue($instance->vat()->equals(Money::EUR(20)));
+    expect($instance->setVat(10))->toBeInstanceOf(Price::class);
+    expect($instance->vatPercentage() === 10.0)->toBeTrue();
+    expect($instance->vat()->getAmount()->compareTo(Money::ofMinor(20, 'EUR')->getAmount()))->toBe(0);
 
-    assertInstanceOf(Price::class, $instance->setVat('32,00 %'));
-    assertTrue($instance->vatPercentage() === 32.0);
-    assertTrue($instance->vat()->equals(Money::EUR(64)));
+    expect($instance->setVat('32,00 %'))->toBeInstanceOf(Price::class);
+    expect($instance->vatPercentage() === 32.0)->toBeTrue();
+    expect($instance->vat()->getAmount()->compareTo(Money::ofMinor(64, 'EUR')->getAmount()))->toBe(0);
 });
 
 it('sets VAT from Money value', function() {
-    $instance = Price::EUR(200);
-    $vat = Money::EUR(50);
+    $instance = Price::ofMinor(200, 'EUR');
+    $vat = Money::ofMinor(50, 'EUR');
 
-    assertInstanceOf(Price::class, $instance->setVat($vat));
-    assertTrue($instance->vatPercentage() === 25.0);
-    assertTrue($instance->vat()->equals($vat));
+    expect($instance->setVat($vat))->toBeInstanceOf(Price::class);
+    expect($instance->vatPercentage() === 25.0)->toBeTrue();
+    expect($instance->vat()->getAmount()->compareTo($vat->getAmount()))->toBe(0);
 });
 
 it('unsets VAT when given null', function() {
-    $instance = Price::EUR(200)->setVat(6);
+    $instance = Price::ofMinor(200, 'EUR')->setVat(6);
 
-    assertInstanceOf(Price::class, $instance->setVat(null));
-    assertTrue(is_null($instance->vatPercentage()));
-    assertTrue(is_null($instance->vat()));
+    expect($instance->setVat(null))->toBeInstanceOf(Price::class);
+    expect(is_null($instance->vatPercentage()))->toBeTrue();
+    expect(is_null($instance->vat()))->toBeTrue();
 });
 
 it('returns VAT for all units by default', function() {
-    $instance = Price::EUR(500, 3)->setVat(10);
+    $instance = Price::ofMinor(500, 'EUR')->setUnits(3)->setVat(10);
 
-    assertTrue($instance->vat()->equals(Money::EUR(150)));
+    expect($instance->vat()->getAmount()->compareTo(Money::ofMinor(150, 'EUR')->getAmount()))->toBe(0);
     // Passing "true" to vat() should return the VAT value per unit
-    assertTrue($instance->vat(true)->equals(Money::EUR(50)));
+    expect($instance->vat(true)->getAmount()->compareTo(Money::ofMinor(50, 'EUR')->getAmount()))->toBe(0);
 });
 
 it('returns exclusive amount without VAT for all units', function() {
-    $instance = Price::EUR(500, 3);
+    $instance = Price::ofMinor(500, 'EUR')->setUnits(3);
 
-    assertTrue($instance->exclusive()->equals(Money::EUR(1500)));
+    expect($instance->exclusive()->getAmount()->compareTo(Money::ofMinor(1500, 'EUR')->getAmount()))->toBe(0);
     // Passing "true" to exclusive() should return the price per unit
-    assertTrue($instance->exclusive(true)->equals(Money::EUR(500)));
+    expect($instance->exclusive(true)->getAmount()->compareTo(Money::ofMinor(500, 'EUR')->getAmount()))->toBe(0);
 
     $instance->setVat(10);
 
-    assertTrue($instance->exclusive()->equals(Money::EUR(1500)));
+    expect($instance->exclusive()->getAmount()->compareTo(Money::ofMinor(1500, 'EUR')->getAmount()))->toBe(0);
     // Passing "true" to exclusive() should return the price per unit
-    assertTrue($instance->exclusive(true)->equals(Money::EUR(500)));
+    expect($instance->exclusive(true)->getAmount()->compareTo(Money::ofMinor(500, 'EUR')->getAmount()))->toBe(0);
 });
 
 it('returns inclusive amount with VAT when defined', function() {
-    $instance = Price::EUR(500, 3);
+    $instance = Price::ofMinor(500, 'EUR')->setUnits(3);
 
-    assertTrue($instance->inclusive()->equals(Money::EUR(1500)));
+    expect($instance->inclusive()->getAmount()->compareTo(Money::ofMinor(1500, 'EUR')->getAmount()))->toBe(0);
     // Passing "true" to inclusive() should return the price per unit
-    assertTrue($instance->inclusive(true)->equals(Money::EUR(500)));
+    expect($instance->inclusive(true)->getAmount()->compareTo(Money::ofMinor(500, 'EUR')->getAmount()))->toBe(0);
 
     $instance->setVat(10);
 
-    assertTrue($instance->inclusive()->equals(Money::EUR(1650)));
+    expect($instance->inclusive()->getAmount()->compareTo(Money::ofMinor(1650, 'EUR')->getAmount()))->toBe(0);
     // Passing "true" to inclusive() should return the price per unit
-    assertTrue($instance->inclusive(true)->equals(Money::EUR(550)));
+    expect($instance->inclusive(true)->getAmount()->compareTo(Money::ofMinor(550, 'EUR')->getAmount()))->toBe(0);
 });
 

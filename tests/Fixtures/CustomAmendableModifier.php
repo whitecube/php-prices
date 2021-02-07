@@ -2,7 +2,7 @@
 
 namespace Tests\Fixtures;
 
-use Money\Money;
+use Brick\Money\Money;
 use Whitecube\Price\PriceAmendable;
 
 class CustomAmendableModifier implements PriceAmendable
@@ -10,14 +10,14 @@ class CustomAmendableModifier implements PriceAmendable
     /**
      * The modifier's addition
      *
-     * @var \Money\Money
+     * @var \Brick\Money\Money
      */
     protected $tax;
 
     /**
      * Create a new custom instance
      *
-     * @param \Money\Money
+     * @param \Brick\Money\Money
      * @return void
      */
     public function __construct(Money $tax)
@@ -59,11 +59,11 @@ class CustomAmendableModifier implements PriceAmendable
     /**
      * Apply the modifier on the given Money instance
      *
-     * @param \Money\Money $value
-     * @return null|\Money\Money
+     * @param \Brick\Money\Money $value
+     * @return null|\Brick\Money\Money
      */
     public function apply(Money $value) : ?Money
     {
-        return $value->add($this->tax);
+        return $value->plus($this->tax);
     }
 }

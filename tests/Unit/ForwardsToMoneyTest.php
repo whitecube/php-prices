@@ -2,22 +2,22 @@
 
 namespace Tests\Unit;
 
-use Money\Money;
+use Brick\Money\Money;
 use Whitecube\Price\Price;
 
 it('creates instance from Money API', function() {
-    $instance = Price::EUR(500, 5);
+    $price = Price::ofMinor(500, 'EUR');
 
-    assertInstanceOf(Price::class, $instance);
-    assertInstanceOf(Money::class, $instance->base());
-    assertEquals(5, $instance->units());
+    expect($price)->toBeInstanceOf(Price::class);
+    expect($price->base())->toBeInstanceOf(Money::class);
+    expect($price->units())->toBe(floatval(1));
 });
 
 it('forwards modifications to base Money instance', function() {
-    $money = Money::EUR(500);
-    $price = new Price($money);
+    $price = Price::of(5, 'EUR');
 
-    $price->subtract(Money::EUR(100));
+    $price->minus(2);
+    $price->plus(Price::ofMinor(100, 'EUR'));
 
-    assertTrue($price->equals(Money::EUR(400)));
+    expect($price->equals(4))->toBeTrue();
 });

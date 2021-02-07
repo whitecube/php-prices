@@ -2,7 +2,7 @@
 
 namespace Whitecube\Price;
 
-use Money\Money;
+use Brick\Money\Money;
 
 interface PriceAmendable
 {
@@ -31,8 +31,8 @@ interface PriceAmendable
     /**
      * Apply the modifier on the given Money instance
      *
-     * @param \Money\Money $value
-     * @return null|\Money\Money
+     * @param \Brick\Money\Money $value
+     * @return null|\Brick\Money\Money
      */
     public function apply(Money $value) : ?Money;
 }

@@ -2,49 +2,37 @@
 
 namespace Tests\Unit;
 
-use Money\Money;
+use Brick\Money\Money;
 use Whitecube\Price\Price;
 
 it('parses decimal (point) currency values', function() {
-    assertTrue(Money::USD(110)->equals(Price::parseCurrency('$1.10')->exclusive()));
-    assertTrue(Money::USD(220)->equals(Price::parseCurrency('$ 2.20')->exclusive()));
-    assertTrue(Money::USD(-330)->equals(Price::parseCurrency('$ - 3.30')->exclusive()));
-    assertTrue(Money::USD(440)->equals(Price::parseCurrency('4.40$')->exclusive()));
-    assertTrue(Money::USD(550)->equals(Price::parseCurrency('5.50 $')->exclusive()));
-    assertTrue(Money::USD(660)->equals(Price::parseCurrency('6.60 - $')->exclusive()));
+    expect(Price::parse('$1.10')->equals(Money::of(1.1,'ARS')))->toBeTrue();
+    expect(Price::parse('$ 2.20')->equals(Money::of(2.2,'ARS')))->toBeTrue();
+    expect(Price::parse('$ - 3.30')->equals(Money::of(-3.3,'ARS')))->toBeTrue();
+    expect(Price::parse('4.40$')->equals(Money::of(4.4,'ARS')))->toBeTrue();
+    expect(Price::parse('5.50 $')->equals(Money::of(5.5,'ARS')))->toBeTrue();
+    expect(Price::parse('6.60 - $')->equals(Money::of(6.6,'ARS')))->toBeTrue();
 });
 
 it('parses decimal (comma) currency values', function() {
-    assertTrue(Money::EUR(110)->equals(Price::parseCurrency('€1,10')->exclusive()));
-    assertTrue(Money::EUR(220)->equals(Price::parseCurrency('€ 2,20')->exclusive()));
-    assertTrue(Money::EUR(-330)->equals(Price::parseCurrency('€ - 3,30')->exclusive()));
-    assertTrue(Money::EUR(440)->equals(Price::parseCurrency('4,40€')->exclusive()));
-    assertTrue(Money::EUR(550)->equals(Price::parseCurrency('5,50 €')->exclusive()));
-    assertTrue(Money::EUR(660)->equals(Price::parseCurrency('6,60 - €')->exclusive()));
+    expect(Price::parse('€1,10')->equals(Money::of(1.1,'EUR')))->toBeTrue();
+    expect(Price::parse('€ 2,20')->equals(Money::of(2.2,'EUR')))->toBeTrue();
+    expect(Price::parse('€ - 3,30')->equals(Money::of(-3.3,'EUR')))->toBeTrue();
+    expect(Price::parse('4,40€')->equals(Money::of(4.4,'EUR')))->toBeTrue();
+    expect(Price::parse('5,50 €')->equals(Money::of(5.5,'EUR')))->toBeTrue();
+    expect(Price::parse('6,60 - €')->equals(Money::of(6.6,'EUR')))->toBeTrue();
 });
 
 it('parses decimal values into requested currency', function() {
-    assertTrue(Money::EUR(110)->equals(Price::parseEUR('$1,10')->exclusive()));
-    assertTrue(Money::EUR(220)->equals(Price::parseEUR('2.20')->exclusive()));
+    expect(Price::parse('$1,10', 'EUR')->equals(Money::of(1.1,'EUR')))->toBeTrue();
+    expect(Price::parse('2.20', 'EUR')->equals(Money::of(2.2,'EUR')))->toBeTrue();
 });
 
 it('parses uncommon decimal values', function() {
-    assertTrue(Money::EUR(100)->equals(Price::parseEUR('1')->exclusive()));
-    assertTrue(Money::EUR(220)->equals(Price::parseEUR('2.2')->exclusive()));
-    assertTrue(Money::EUR(300)->equals(Price::parseEUR('3.003')->exclusive()));
-    assertTrue(Money::EUR(401)->equals(Price::parseEUR('4.005')->exclusive()));
-    assertTrue(Money::EUR(0)->equals(Price::parseEUR('foo')->exclusive()));
-    assertTrue(Money::EUR(650)->equals(Price::parseEUR('bar 6.50')->exclusive()));
-});
-
-it('behaves as a regular instanciator when parsing decimal values', function() {
-    $guess = Price::parseCurrency('50,1 EUR', 4);
-
-    assertTrue(Money::EUR(5010)->equals($guess->base()));
-    assertTrue(Money::EUR(20040)->equals($guess->base(false)));
-
-    $force = Price::parseUSD('80.5', 5);
-
-    assertTrue(Money::USD(8050)->equals($force->base()));
-    assertTrue(Money::USD(40250)->equals($force->base(false)));
+    expect(Price::parse('1', 'EUR')->equals(Money::of(1,'EUR')))->toBeTrue();
+    expect(Price::parse('2.2', 'EUR')->equals(Money::of(2.2,'EUR')))->toBeTrue();
+    expect(Price::parse('3.003', 'EUR')->equals(Money::of(3,'EUR')))->toBeTrue();
+    expect(Price::parse('4.005', 'EUR')->equals(Money::of(4.01,'EUR')))->toBeTrue();
+    expect(Price::parse('foo', 'EUR')->equals(Money::of(0,'EUR')))->toBeTrue();
+    expect(Price::parse('bar 6.50', 'EUR')->equals(Money::of(6.5,'EUR')))->toBeTrue();
 });

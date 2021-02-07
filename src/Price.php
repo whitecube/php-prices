@@ -2,33 +2,40 @@
 
 namespace Whitecube\Price;
 
-use Money\Money;
-use Money\Currency;
+use Brick\Money\Money;
+use Brick\Math\RoundingMode;
+use Brick\Math\BigDecimal;
 
 class Price implements \JsonSerializable
 {
-    use ParsesPrices {
-        ParsesPrices::__callStatic as callPriceParser;
-    }
+    use Concerns\OperatesOnBase;
+    use Concerns\ParsesPrices;
+
+    /**
+     * The rounding method that should be used
+     *
+     * @var string
+     */
+    static protected $rounding = RoundingMode::HALF_UP;
 
     /**
      * The root price
      *
-     * @var \Money\Money
+     * @var \Brick\Money\Money
      */
     protected $base;
 
     /**
      * The base exclusive price (after modification)
      *
-     * @var null|\Money\Money
+     * @var null|\Brick\Money\Money
      */
     protected $excl;
 
     /**
      * The VAT's percentage of the base price
      *
-     * @var null|float
+     * @var null|\Brick\Math\BigDecimal
      */
     protected $vat;
 
@@ -56,7 +63,7 @@ class Price implements \JsonSerializable
     /**
      * Create a new Price object
      *
-     * @param \Money\Money $base
+     * @param \Brick\Money\Money $base
      * @param int $units
      * @return void
      */
@@ -65,6 +72,22 @@ class Price implements \JsonSerializable
         $this->base = $base;
         $this->setUnits($units);
     }
+
+    /**
+     * Convenience Money method for creating a Price object
+     *
+     * @param string $method
+     * @param array  $arguments
+     * @return static
+     */
+    public static function __callStatic($method, $arguments)
+    {
+        $base = Money::$method(...$arguments);
+
+        return new static($base);
+    }
+
+    // TODO : add static method for rounding configuration
 
     /**
      * Return the price's underlying currency instance
@@ -80,11 +103,11 @@ class Price implements \JsonSerializable
      * Return the price's base value
      *
      * @param bool $perUnit
-     * @return \Money\Money
+     * @return \Brick\Money\Money
      */
     public function base($perUnit = true)
     {
-        return $this->base->multiply($perUnit ? 1 : $this->units);
+        return $this->base->multipliedBy($perUnit ? 1 : $this->units, static::$rounding);
     }
 
     /**
@@ -132,9 +155,10 @@ class Price implements \JsonSerializable
         if(is_null($value)) {
             $this->vat = null;
         } elseif (is_a($value, Money::class)) {
-            $this->vat = (100 / $this->base->ratioOf($value));
+            $value = $this->base->getAmount()->quotient($value->getAmount());
+            $this->vat = BigDecimal::of(100)->dividedBy($value, 2);
         } else {
-            $this->vat = floatval(str_replace(',', '.', $value));
+            $this->vat = BigDecimal::of(str_replace(',', '.', trim($value, ' %')));
         }
 
         return $this;
@@ -144,7 +168,7 @@ class Price implements \JsonSerializable
      * Return the VAT Money value
      *
      * @param bool $perUnit
-     * @return null|\Money\Money
+     * @return null|\Brick\Money\Money
      */
     public function vat($perUnit = false)
     {
@@ -156,8 +180,9 @@ class Price implements \JsonSerializable
             $this->base, $this->getModifiers(true), false
         );
 
-        return $base->multiply(
-            ($perUnit ? 1 : $this->units) * ($this->vat / 100)
+        return $base->multipliedBy(
+            $this->vat->dividedBy(100, 4, static::$rounding)->multipliedBy($perUnit ? 1 : $this->units),
+            static::$rounding
         );
     }
 
@@ -168,19 +193,19 @@ class Price implements \JsonSerializable
      */
     public function vatPercentage()
     {
-        return $this->vat;
+        return $this->vat ? $this->vat->toFloat() : null;
     }
 
     /**
      * Return the EXCL. Money value
      *
      * @param bool $perUnit
-     * @return \Money\Money
+     * @return \Brick\Money\Money
      */
     public function exclusive($perUnit = false)
     {
         return $this->getModifiedBase()
-            ->multiply($perUnit ? 1 : $this->units);
+            ->multipliedBy($perUnit ? 1 : $this->units, static::$rounding);
     }
 
     /**
@@ -209,7 +234,7 @@ class Price implements \JsonSerializable
      * Return the INCL. Money value
      *
      * @param bool $perUnit
-     * @return \Money\Money
+     * @return \Brick\Money\Money
      */
     public function inclusive($perUnit = false)
     {
@@ -218,7 +243,7 @@ class Price implements \JsonSerializable
         }
 
         return $this->exclusive($perUnit)
-            ->add($this->vat($perUnit));
+            ->plus($this->vat($perUnit), static::$rounding);
     }
 
     /**
@@ -316,7 +341,7 @@ class Price implements \JsonSerializable
 
         if(is_a($modifier, Money::class)) {
             $modifier = function(Money $value) use ($modifier) {
-                return $value->add($modifier);
+                return $value->plus($modifier, static::$rounding);
             };
         }
 
@@ -361,7 +386,7 @@ class Price implements \JsonSerializable
     /**
      * Get the price's modified exclusive base price
      *
-     * @return \Money\Money
+     * @return \Brick\Money\Money
      */
     protected function getModifiedBase()
     {
@@ -383,10 +408,10 @@ class Price implements \JsonSerializable
     /**
      * Apply the given modifiers array on the given base price
      *
-     * @param \Money\Money $base
+     * @param \Brick\Money\Money $base
      * @param array $modifiers
      * @param bool $log
-     * @return \Money\Money
+     * @return \Brick\Money\Money
      */
     protected function applyModifiers(Money $base, array $modifiers, $log = true)
     {
@@ -395,7 +420,7 @@ class Price implements \JsonSerializable
 
             if(!$result) return $base;
 
-            if($log) $this->pushModifierResult($result->subtract($base), $modifier);
+            if($log) $this->pushModifierResult($result->minus($base, static::$rounding), $modifier);
 
             return $result;
         }, $base);
@@ -404,7 +429,7 @@ class Price implements \JsonSerializable
     /**
      * Add a modifier's result to the modified history array
      *
-     * @param \Money\Money $amount
+     * @param \Brick\Money\Money $amount
      * @param \Whitecube\Price\PriceAmendable $modifier
      * @return void
      */
@@ -432,64 +457,23 @@ class Price implements \JsonSerializable
     }
 
     /**
-     * Forward operations on the price's base value
-     *
-     * @param string $method
-     * @param array  $arguments
-     * @return $this|mixed
-     */
-    public function __call($method, $arguments)
-    {
-        $result = call_user_func_array([$this->base, $method], $arguments);
-
-        if(!is_a($result, Money::class)) {
-            return $result;
-        }
-
-        $this->base = $result;
-
-        return $this;
-    }
-
-    /**
-     * Convenience Money method for creating a Price object
-     *
-     * @param string $method
-     * @param array  $arguments
-     * @return static
-     */
-    public static function __callStatic($method, $arguments)
-    {
-        try {
-            $price = static::callPriceParser($method, $arguments);
-        } catch (\BadMethodCallException $e) {
-            $base = new Money($arguments[0], new Currency($method));
-
-            $price = new static($base, $arguments[1] ?? 1);
-        }
-
-        return $price;
-    }
-
-    /**
      * {@inheritdoc}
      *
      * @return array
      */
     public function jsonSerialize()
     {
-        $base = $this->base->jsonSerialize();
-        $excl = $this->exclusive()->jsonSerialize();
-        $incl = $this->inclusive()->jsonSerialize();
+        $excl = $this->exclusive();
+        $incl = $this->inclusive();
 
         return [
-            'base' => $base['amount'],
-            'currency' => $base['currency'],
+            'base' => $this->base->getMinorAmount(),
+            'currency' => $this->base->getCurrency()->getCurrencyCode(),
             'units' => $this->units,
             'vat' => $this->vat,
             'total' => [
-                'exclusive' => $excl['amount'],
-                'inclusive' => $incl['amount'],
+                'exclusive' => $excl->getMinorAmount(),
+                'inclusive' => $incl->getMinorAmount(),
             ],
         ];
     }
@@ -511,7 +495,7 @@ class Price implements \JsonSerializable
             throw new \InvalidArgumentException('Cannot create Price from invalid argument (expects JSON string or Array)');
         }
 
-        $base = new Money($value['base'], new Currency($value['currency']));
+        $base = Money::ofMinor($value['base'], $value['currency']);
         
         return (new static($base, $value['units']))
             ->setVat($value['vat']);

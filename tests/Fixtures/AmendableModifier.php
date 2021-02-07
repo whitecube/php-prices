@@ -2,7 +2,7 @@
 
 namespace Tests\Fixtures;
 
-use Money\Money;
+use Brick\Money\Money;
 use Whitecube\Price\PriceAmendable;
 
 class AmendableModifier implements PriceAmendable
@@ -41,11 +41,11 @@ class AmendableModifier implements PriceAmendable
     /**
      * Apply the modifier on the given Money instance
      *
-     * @param \Money\Money $value
-     * @return null|\Money\Money
+     * @param \Brick\Money\Money $value
+     * @return null|\Brick\Money\Money
      */
     public function apply(Money $value) : ?Money
     {
-        return $value->add($value->multiply(0.25));
+        return $value->plus($value->multipliedBy(0.25));
     }
 }
