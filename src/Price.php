@@ -13,11 +13,14 @@ class Price implements \JsonSerializable
     use Concerns\ParsesPrices;
 
     /**
-     * The rounding method that should be used
+     * The rounding methods that should be used when calculating prices
      *
-     * @var string
+     * @var array
      */
-    static protected $rounding = RoundingMode::HALF_UP;
+    static protected $rounding = [
+        'exclusive' => RoundingMode::HALF_UP,
+        'vat' => RoundingMode::HALF_UP,
+    ];
 
     /**
      * The root price
@@ -95,7 +98,28 @@ class Price implements \JsonSerializable
         return new static($base, $units);
     }
 
-    // TODO : add static method for rounding configuration
+    /**
+     * Configure the price rounding policy
+     *
+     * @param string $moment
+     * @param int $method
+     * @return void
+     */
+    public static function setRounding(string $moment, int $method)
+    {
+        static::$rounding[$moment] = $method;
+    }
+
+    /**
+     * Get the current price rounding policy for given moment
+     *
+     * @param string $moment
+     * @return int
+     */
+    public static function getRounding($moment)
+    {
+        return static::$rounding[$moment] ?? RoundingMode::UNNECESSARY;
+    }
 
     /**
      * Return the price's underlying currency instance
@@ -117,7 +141,7 @@ class Price implements \JsonSerializable
     {
         return ($perUnit)
             ? $this->base
-            : $this->base->multipliedBy($this->units, static::$rounding);
+            : $this->base->multipliedBy($this->units, static::getRounding('exclusive'));
     }
 
     /**
@@ -180,8 +204,8 @@ class Price implements \JsonSerializable
         );
 
         return $base->multipliedBy(
-            $this->vat->dividedBy(100, 4, static::$rounding)->multipliedBy($perUnit ? 1 : $this->units),
-            static::$rounding
+            $this->vat->dividedBy(100, 4, RoundingMode::HALF_UP)->multipliedBy($perUnit ? 1 : $this->units),
+            static::getRounding('vat')
         );
     }
 
@@ -205,7 +229,7 @@ class Price implements \JsonSerializable
     {
         // TODO : refactor with rounding applied correctly
         return $this->getModifiedBase()
-            ->multipliedBy($perUnit ? 1 : $this->units, static::$rounding);
+            ->multipliedBy($perUnit ? 1 : $this->units, static::getRounding('exclusive'));
     }
 
     /**
@@ -222,7 +246,7 @@ class Price implements \JsonSerializable
         }
 
         return $this->exclusive($perUnit)
-            ->plus($this->vat($perUnit), static::$rounding);
+            ->plus($this->vat($perUnit), static::getRounding('vat'));
     }
 
     /**
@@ -309,7 +333,7 @@ class Price implements \JsonSerializable
 
         if(is_a($modifier, Money::class)) {
             $modifier = function(Money $value) use ($modifier) {
-                return $value->plus($modifier, static::$rounding);
+                return $value->plus($modifier, static::getRounding('exclusive'));
             };
         }
 
@@ -388,7 +412,7 @@ class Price implements \JsonSerializable
 
             if(!$result) return $base;
 
-            if($log) $this->pushModifierResult($result->minus($base, static::$rounding), $modifier);
+            if($log) $this->pushModifierResult($result->minus($base, static::getRounding('exclusive')), $modifier);
 
             return $result;
         }, $base);
