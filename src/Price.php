@@ -3,6 +3,7 @@
 namespace Whitecube\Price;
 
 use Brick\Money\Money;
+use Brick\Money\ISOCurrencyProvider;
 use Brick\Math\RoundingMode;
 use Brick\Math\BigDecimal;
 
@@ -74,7 +75,7 @@ class Price implements \JsonSerializable
     }
 
     /**
-     * Convenience Money method for creating a Price object
+     * Convenience Money methods for creating Price objects
      *
      * @param string $method
      * @param array  $arguments
@@ -82,9 +83,16 @@ class Price implements \JsonSerializable
      */
     public static function __callStatic($method, $arguments)
     {
-        $base = Money::$method(...$arguments);
+        try {
+            $currency = ISOCurrencyProvider::getInstance()->getCurrency(strtoupper($method));
+            $base = Money::ofMinor($arguments[0], $currency);
+            $units = $arguments[1] ?? 1;
+        } catch (\Exception $e) {
+            $base = Money::$method(...$arguments);
+            $units = 1;
+        }
 
-        return new static($base);
+        return new static($base, $units);
     }
 
     // TODO : add static method for rounding configuration
