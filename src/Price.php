@@ -115,18 +115,9 @@ class Price implements \JsonSerializable
      */
     public function base($perUnit = true)
     {
-        return $this->base->multipliedBy($perUnit ? 1 : $this->units, static::$rounding);
-    }
-
-    /**
-     * Directly return the price's base Money amount
-     *
-     * @param bool $perUnit
-     * @return string
-     */
-    public function baseAmount($perUnit = true)
-    {
-        return $this->base($perUnit)->getAmount();
+        return ($perUnit)
+            ? $this->base
+            : $this->base->multipliedBy($this->units, static::$rounding);
     }
 
     /**
@@ -212,30 +203,9 @@ class Price implements \JsonSerializable
      */
     public function exclusive($perUnit = false)
     {
+        // TODO : refactor with rounding applied correctly
         return $this->getModifiedBase()
             ->multipliedBy($perUnit ? 1 : $this->units, static::$rounding);
-    }
-
-    /**
-     * Directly return the price's exclusive Money amount
-     *
-     * @param bool $perUnit
-     * @return string
-     */
-    public function exclusiveAmount($perUnit = true)
-    {
-        return $this->exclusive($perUnit)->getAmount();
-    }
-
-    /**
-     * Alias of exclusiveAmount
-     *
-     * @param bool $perUnit
-     * @return string
-     */
-    public function amount($perUnit = true)
-    {
-        return $this->exclusiveAmount($perUnit);
     }
 
     /**
@@ -246,23 +216,13 @@ class Price implements \JsonSerializable
      */
     public function inclusive($perUnit = false)
     {
+        // TODO : refactor with rounding applied correctly
         if(is_null($this->vat)) {
             return $this->exclusive($perUnit);
         }
 
         return $this->exclusive($perUnit)
             ->plus($this->vat($perUnit), static::$rounding);
-    }
-
-    /**
-     * Directly return the price's inclusive Money amount
-     *
-     * @param bool $perUnit
-     * @return string
-     */
-    public function inclusiveAmount($perUnit = true)
-    {
-        return $this->inclusive($perUnit)->getAmount();
     }
 
     /**

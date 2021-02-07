@@ -458,28 +458,6 @@ $history = $price->modifications(Modifier::TYPE_DISCOUNT);  // Only returning di
 
 By default, all handled monetary values are wrapped into a `Brick\Money\Money` object. This should be the only way to manipulate these values in order to [avoid decimal approximation errors](https://stackoverflow.com/questions/3730019/why-not-use-double-or-float-to-represent-currency).
 
-### Amounts
-
-Sometimes you'll need to access the `Brick\Money\Money` object's raw value, for example if you wish to store the value in the database. This is possible using on of these shortcut `amount` methods. Please remember that the raw values are treated as strings (instead of integers or floats):
-
-```php
-// 5 x €6.00 with 10% VAT and €1.00 discount each (after VAT)
-$price = Price::EUR(600, 5)
-    ->setVat(10)
-    ->addDiscount(function(Money $value) {
-        return $value->subtract(Money::EUR(100));
-    });
-
-$price->amount();               // '500'
-$price->amount(false);          // '2500'
-$price->exclusiveAmount();      // Alias of "amount()"
-$price->exclusiveAmount(false); // Alias of "amount(false)"
-$price->inclusiveAmount();      // '560'
-$price->inclusiveAmount(false); // '2800'
-$price->baseAmount();           // '600'
-$price->baseAmount(false);      // '3000'
-```
-
 ### JSON
 
 Prices can be serialized to JSON and rehydrated using the `Price::json($value)` method, which can be useful when storing/retrieving prices from a database or an external API for example:
