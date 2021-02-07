@@ -18,6 +18,16 @@ composer require whitecube/php-prices
 
 Each `Price` object has a `Brick\Money\Money` instance which is considered to be the item's unchanged, per-unit & exclusive amount. All the composition operations, such as adding VAT or applying discounts, are added on top of this base value.
 
+```php
+use Whitecube\Price\Price;
+
+$steak = Price::EUR(1850)   // Steak costs €18.50/kg
+    ->setUnits(1.476)       // Customer had 1.476kg, excl. total is €27.31
+    ->setVat(6)             // There is 6% VAT, incl. total is €28.95
+    ->addTax(50)            // There also is a €0.50/kg tax (before VAT), incl. total is €29,74
+    ->addDiscount(-100);    // We granted a €1.00/kg discount (before VAT), incl. total is €28,17
+```
+
 It is common practice and always best to work with amounts represented in **the smallest currency unit (minor values)** such as "cents".
 
 There are several convenient ways to obtain a `Price` instance :
