@@ -22,12 +22,12 @@ It is common practice and always best to work with amounts represented in **the 
 
 There are several convenient ways to obtain a `Price` instance :
 
-| Method                                                         | Using major values                | Using minor values                  | Defining units                   |
-| :------------------------------------------------------------- | :-------------------------------- | :---------------------------------- | :------------------------------- |
-| [From constructor](#from-constructor)                          | `new Price(Money $base)`          | `new Price(Money $base)`            | `new Price(Money $base, $units)` |
-| [From Brick/Money-like methods](#from-brickmoney-like-methods) | `Price::of($major, $currency)`    | `Price::ofMinor($minor, $currency)` | -                                |
-| [From currency-code methods](#from-currency-code-methods)      | -                                 | `Price::EUR($minor)`                | `Price::USD($minor, $units)`     |
-| [From parsed string values](#from-parsed-string-values)        | `Price::parse($value, $currency)` | -                                   | -                                |
+| Method                                               | Using major values                | Using minor values                  | Defining units                   |
+| :--------------------------------------------------- | :-------------------------------- | :---------------------------------- | :------------------------------- |
+| [Constructor](#from-constructor)                     | `new Price(Money $base)`          | `new Price(Money $base)`            | `new Price(Money $base, $units)` |
+| [Brick/Money methods](#from-brickmoney-like-methods) | `Price::of($major, $currency)`    | `Price::ofMinor($minor, $currency)` | -                                |
+| [Currency methods](#from-currency-code-methods)      | -                                 | `Price::EUR($minor)`                | `Price::USD($minor, $units)`     |
+| [Parsed strings](#from-parsed-string-values)         | `Price::parse($value, $currency)` | -                                   | -                                |
 
 ### From Constructor
 
