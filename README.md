@@ -1,6 +1,10 @@
 # PHP Prices
 
-Using the underlying [`moneyphp/money`](https://github.com/moneyphp/money) library, this simple Price object allows to work with complex composite monetary values which include exclusive, inclusive, VAT (or other taxes) and discount amounts. It makes it safer and easier to compute final displayable prices without having to worry about their construction.
+> 💸 **Version 2.x**
+> This new major version is shifting the package towards more flexibility and configuration possibilities in general.
+> One of the main differences is that we replaced [`moneyphp/money`](https://github.com/moneyphp/money) with [`brick/money`](https://github.com/brick/money) under the hood. This introduces a ton of **breaking changes**, mainly on the instantiation methods that now reflect brick/money's API in order to keep things developer friendly. The `1.x` branch will still be available and maintained for a while, but we strongly recommend updating to `2.x`.
+
+Using the underlying [`brick/money`](https://github.com/brick/money) library, this simple Price object allows to work with complex composite monetary values which include exclusive, inclusive, VAT (and other potential taxes) and discount amounts. It makes it safer and easier to compute final displayable prices without having to worry about their construction.
 
 ## Install
 
@@ -10,18 +14,18 @@ composer require whitecube/php-prices
 
 ## Instantiation
 
-Each `Price` object has a `Money\Money` instance which is considered to be the item's raw, per-unit & exclusive amount. All the composition operations, such as adding VAT or applying a discount, are added on top of this base value.
+Each `Price` object has a `Brick\Money\Money` instance which is considered to be the item's raw, per-unit & exclusive amount. All the composition operations, such as adding VAT or applying a discount, are added on top of this base value.
 
-All amounts are represented in **the smallest currency unit** (eg. cents).
+It is always best to work with amounts are represented in **the smallest currency unit (minor values)** such as "cents".
 
-You can set this basic value by instantiating the Price directly with the desired `Money\Money` instance:
+You can set this basic value by instantiating the Price directly with the desired `Brick\Money\Money` instance:
 
 ```php
 use Whitecube\Price\Price;
-use Money\Money;
+use Brick\Money\Money;
 use Money\Currency;
 
-$base = new Money(500, new Currency('USD'));    // $5.00
+$base = new Money::ofMinor(500, 'USD');         // $5.00
 
 $single = new Price($base);                     // 1 x $5.00
 $multiple = new Price($base, 4);                // 4 x $5.00
@@ -32,19 +36,20 @@ For convenience, it is also possible to use the shorthand Money factory methods:
 ```php
 use Whitecube\Price\Price;
 
-$single = Price::EUR(500);                      // 1 x €5.00
-$multiple = Price::EUR(500, 4);                 // 4 x €5.00
+$simple = Price::of(5, 'EUR');                          // 1 x €5.00
+$minor = Price::ofMinor(500, 'EUR');                    // 1 x €5.00
+$multiple = Price::ofMinor(500, 'EUR')->setUnits(4);    // 4 x €5.00
 ```
 
-For more information on the available currencies and parsable formats, please take a look at [`moneyphp/money`'s documentation](http://moneyphp.org/).
+For more information on the available currencies and parsable formats, please take a look at [`brick/money`'s documentation](https://github.com/brick/money).
 
 Additionnaly, prices can also be parsed from "raw decimal currency" values:
 
 ```php
 use Whitecube\Price\Price;
 
-$guessCurrency = Price::parseCurrency('5,5$');      // 1 x $5.50
-$forceCurrency = Price::parseEUR('10');             // 1 x €10.00
+$guessCurrency = Price::parse('5,5$');          // 1 x $5.50
+$forceCurrency = Price::parse('10', 'EUR');     // 1 x €10.00
 ```
 
 Parsing formatted strings is a tricky subject. More information on [parsing string values](#parsing-values) below.
@@ -57,7 +62,7 @@ Once set, this base value can be accessed using the `base()` method.
 $base = $price->base();
 ```
 
-Getting the `Money\Currency` instance is just as easy:
+Getting the `Brick\Money\Currency` instance is just as easy:
 
 ```php
 $currency = $price->currency();
@@ -65,48 +70,49 @@ $currency = $price->currency();
 
 ### Modifying the base price
 
-The price object will forward all the `Money\Money` API method calls to its base value.
+The price object will forward all the `Brick\Money\Money` API method calls to its base value.
 
-> ⚠️ **Warning**: In opposition to [Money](https://github.com/moneyphp/money) objects, Price objects are not immutable. Therefore, operations like add, subtract, etc. will directly modify the price's base value instead of returning a new instance.
+> ⚠️ **Warning**: In opposition to [Money](https://github.com/brick/money) objects, Price objects are not immutable. Therefore, operations like plus, minus, etc. will directly modify the price's base value instead of returning a new instance.
 
 ```php
 use Whitecube\Price\Price;
-use Money\Money;
+use Brick\Money\Money;
 
-$price = Price::USD(500, 2);        // 2 x $5.00
+$price = Price::ofMinor(500, 'USD')->setUnits(2);   // 2 x $5.00
 
-$price->add(Money::USD(100))        // 2 x $6.00
-    ->divide(2)                     // 2 x $3.00
-    ->subtract(Money::USD(600))     // 2 x $-3.00
-    ->absolute();                   // 2 x $3.00
+$price->plus(100)                                   // 2 x $6.00
+    ->dividedBy(2)                                  // 2 x $3.00
+    ->minus(Money::ofMinor(600, 'USD'))             // 2 x $-3.00
+    ->abs();                                        // 2 x $3.00
 
-$price->equals(Money::USD(300));    // true
+$price->equals(Money::ofMinor(300, 'USD'));         // true
 ```
 
-Please refer to [`moneyphp/money`'s documentation](http://moneyphp.org/) for the full list of available features.
+Please refer to [`brick/money`'s documentation](https://github.com/brick/money) for the full list of available features.
 
 > 💡 **Nice to know**: Most of the time, you'll be using modifiers to alter a price since its base value is meant to be somehow constant. For more information on modifiers, please take at the ["Adding modifiers" section](#adding-modifiers) below.
 
-## Working with units
+## Units & quantities
 
 This package's default behavior is to consider its base price as the "per unit" price. When no units have been specified, it defaults to `1`. You can set the units amount during instantiation:
 
 ```php
 use Whitecube\Price\Price;
+use Brick\Money\Money;
 
-$price = Price::EUR(500, 2);        // 2 units of €5.00 each
+$price = new Price(Money::ofMinor(500, 'EUR'), 2);      // 2 units of €5.00 each
 ```
 
 Or modify it later using the `setUnits()` method:
 
 ```php
-$price->setUnits(1.75);             // 1.75 x €5.00
+$price->setUnits(1.75);                                 // 1.75 x €5.00
 ```
 
 You can return the units count using the `units()` method:
 
 ```php
-$units = $price->units();           // 1.75
+$quantity = $price->units();                            // 1.75
 ```
 
 ## Adding VAT
@@ -149,7 +155,7 @@ Modifiers are all the custom operations a business needs to apply on a price bef
 
 ```php
 use Whitecube\Price\Price;
-use Money\Money;
+use Brick\Money\Money;
 
 $price = Price::USD(800, 5)                 // 5 x $8.00
     ->addDiscount(-100)                     // 5 x $7.00
@@ -163,7 +169,7 @@ $price->addDiscount(-50, 'nice-customer');  // 5 x $6.00
 
 ```php
 use Whitecube\Price\Price;
-use Money\Money;
+use Brick\Money\Money;
 
 $price = Price::EUR(125, 10)                // 10 x €1.25
     ->addTax(100)                           // 10 x €2.25                     
@@ -179,7 +185,7 @@ Sometimes modifiers cannot be categorized into "discounts" or "taxes", in which 
 
 ```php
 use Whitecube\Price\Price;
-use Money\Money;
+use Brick\Money\Money;
 
 $price = Price::USD(2000)                   // 1 x $20.00
     ->addModifier(500)                      // 1 x $25.00                
@@ -208,7 +214,7 @@ Most of the time, modifiers are more complex to define than simple "+" or "-" op
 
 ```php
 use Whitecube\Price\Price;
-use Money\Money;
+use Brick\Money\Money;
 
 $price = Price::USD(1250)
     ->addDiscount(function(Money $value) {
@@ -238,7 +244,7 @@ $price = Price::EUR(600, 5)
 These classes have to implement the [`Whitecube\Price\PriceAmendable`](https://github.com/whitecube/php-prices/blob/master/src/PriceAmendable.php) interface, which looks more or less like this:
 
 ```php
-use Money\Money;
+use Brick\Money\Money;
 use Whitecube\Price\Modifier;
 use Whitecube\Price\PriceAmendable;
 
@@ -278,8 +284,8 @@ class SomeRandomModifier implements PriceAmendable
     /**
      * Apply the modifier on the given Money instance
      *
-     * @param \Money\Money $value
-     * @return null|\Money\Money
+     * @param \Brick\Money\Money $value
+     * @return null|\Brick\Money\Money
      */
     public function apply(Money $value) : ?Money
     {
@@ -297,7 +303,7 @@ class SomeRandomModifier implements PriceAmendable
 If needed, it is also possible to pass arguments to these custom classes from the Price configuration:
 
 ```php
-use Money\Money;
+use Brick\Money\Money;
 use Whitecube\Price\Price;
 
 $price = Price::EUR(600, 5)
@@ -305,7 +311,7 @@ $price = Price::EUR(600, 5)
 ```
 
 ```php
-use Money\Money;
+use Brick\Money\Money;
 use Whitecube\Price\PriceAmendable;
 
 class BetweenModifier implements PriceAmendable
@@ -357,11 +363,11 @@ $history = $price->modifications(Modifier::TYPE_DISCOUNT);  // Only returning di
 
 ## Output
 
-By default, all handled monetary values are wrapped into a `Money\Money` object. This should be the only way to manipulate these values in order to [avoid decimal approximation errors](https://stackoverflow.com/questions/3730019/why-not-use-double-or-float-to-represent-currency).
+By default, all handled monetary values are wrapped into a `Brick\Money\Money` object. This should be the only way to manipulate these values in order to [avoid decimal approximation errors](https://stackoverflow.com/questions/3730019/why-not-use-double-or-float-to-represent-currency).
 
 ### Amounts
 
-Sometimes you'll need to access the `Money\Money` object's raw value, for example if you wish to store the value in the database. This is possible using on of these shortcut `amount` methods. Please remember that the raw values are treated as strings (instead of integers or floats):
+Sometimes you'll need to access the `Brick\Money\Money` object's raw value, for example if you wish to store the value in the database. This is possible using on of these shortcut `amount` methods. Please remember that the raw values are treated as strings (instead of integers or floats):
 
 ```php
 // 5 x €6.00 with 10% VAT and €1.00 discount each (after VAT)
@@ -402,26 +408,26 @@ There are a few available methods that will allow to transform a monetary string
 ```php
 use Whitecube\Price\Price;
 
-$fromIsoCode = Price::parseCurrency('USD 5.50');    // 1 x $5.50
-$fromSymbol = Price::parseCurrency('10€', 2);       // 2 x €10.00
+$fromIsoCode = Price::parse('USD 5.50');        // 1 x $5.50
+$fromSymbol = Price::parse('10€');              // 1 x €10.00
 ```
 
-For this to work, the string should **always** contain an indication on the currency being used (either a valid ISO code or symbol).
+For this to work, the string should **always** contain an indication on the currency being used (either a valid ISO code or symbol). When using symbols, be aware that some of them (`$` for instance) are used in multiple currencies, resulting in ambiguous results.
 
-When you're sure which ISO Currency is concerned, you should directly use its dedicated parser method (`parse[ISO-code]`):
+When you're sure which ISO Currency is concerned, you should directly pass it as the second parameter of the `parse()` method:
 
 ```php
 use Whitecube\Price\Price;
 
-$priceEUR = Price::parseEUR('5,5 $');       // 1 x €5.50
-$priceUSD = Price::parseUSD('0.103', 8);    // 8 x $0.10
+$priceEUR = Price::parse('5,5 $', 'EUR');       // 1 x €5.50
+$priceUSD = Price::parse('0.103', 'USD');       // 1 x $0.10
 ```
 
 When using dedicated currency parsers, all units/symbols and non-numerical characters are ignored.
 
 ---
 
-## 💖 Sponsorships
+## 🔥 Sponsorships
 
 If you are reliant on this package in your production applications, consider [sponsoring us](https://github.com/sponsors/whitecube)! It is the best way to help us keep doing what we love to do: making great open source software.
 
