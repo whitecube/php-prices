@@ -36,12 +36,12 @@ trait HasVat
     /**
      * Return the VAT definition object
      *
-     * @param bool $build
+     * @param bool $withoutDefault
      * @return null|\Whitecube\Price\Vat
      */
-    public function vat($build = true)
+    public function vat($withoutDefault = false)
     {
         return $this->vat
-            ?? ($build ? new Vat(0, $this) : null);
+            ?? ($withoutDefault ? null : new Vat(0, $this));
     }
 }

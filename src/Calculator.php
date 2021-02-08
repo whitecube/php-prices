@@ -160,7 +160,7 @@ class Calculator
      */
     protected function getVatResult($perUnit)
     {
-        $vat = $this->price->vat(false);
+        $vat = $this->price->vat(true);
 
         if(! $vat) {
             return Money::zero($this->price->currency());

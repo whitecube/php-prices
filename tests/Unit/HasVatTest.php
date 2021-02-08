@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use Brick\Money\Money;
+use Whitecube\Price\Vat;
 use Whitecube\Price\Price;
 
 it('sets VAT from relative percentage', function() {
@@ -25,7 +26,10 @@ it('unsets VAT when given null', function() {
     $instance = Price::ofMinor(200, 'EUR')->setVat(6);
 
     expect($instance->setVat(null))->toBeInstanceOf(Price::class);
-    expect(is_null($instance->vat()))->toBeTrue();
+    expect($instance->vat())->toBeInstanceOf(Vat::class);
+    expect($instance->vat()->percentage())->toBe(0.0);
+    expect($instance->vat()->money()->__toString())->toBe('EUR 0.00');
+    expect($instance->vat(true))->toBeNull();
 });
 
 it('returns VAT for all units by default', function() {
