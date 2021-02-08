@@ -13,6 +13,7 @@ class Modifier implements PriceAmendable
      */
     const TYPE_TAX = 'tax';
     const TYPE_DISCOUNT = 'discount';
+    const TYPE_UNDEFINED = 'undefined';
 
     /**
      * The effective modifier type
@@ -27,6 +28,13 @@ class Modifier implements PriceAmendable
      * @var null|string
      */
     protected $key;
+
+    /**
+     * The extra attributes that should be passed along
+     *
+     * @var array
+     */
+    protected $attributes = [];
 
     /**
      * Whether this modifier should be executed
@@ -115,6 +123,18 @@ class Modifier implements PriceAmendable
     }
 
     /**
+     * Define the modifier's extra attributes
+     *
+     * @param array $attributes
+     * @return $this
+     */
+    public function setAttributes(array $attributes = [])
+    {
+        $this->attributes = $attributes;
+
+        return $this;
+    }
+    /**
      * Get the modifier attributes that should be saved in the
      * price modification history.
      *
@@ -122,7 +142,7 @@ class Modifier implements PriceAmendable
      */
     public function attributes() : ?array
     {
-        return null;
+        return $this->attributes ?: null;
     }
 
     /**
@@ -276,13 +296,15 @@ class Modifier implements PriceAmendable
                 return $this->applyStackAction($action, $build);
             }
 
-            if($this->appliesPerUnit() && (! $perUnit) && $units > 1) {
-                $argument = is_a($action['arguments'][0] ?? null, Money::class)
+            $argument = is_a($action['arguments'][0] ?? null, Money::class)
                     ? $action['arguments'][0]
                     : Money::ofMinor($action['arguments'][0] ?? 0, $build->getCurrency());
 
-                $action['arguments'][0] = $argument->multipliedBy($units, Price::getRounding('exclusive'));
+            if($this->appliesPerUnit() && (! $perUnit) && $units > 1) {
+                $argument = $argument->multipliedBy($units, Price::getRounding('exclusive'));
             }
+
+            $action['arguments'][0] = $argument;
 
             return $this->applyStackAction($action, $build);
         }, $build);

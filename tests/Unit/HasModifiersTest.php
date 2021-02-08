@@ -9,6 +9,84 @@ use Tests\Fixtures\AmendableModifier;
 use Tests\Fixtures\NonAmendableModifier;
 use Tests\Fixtures\CustomAmendableModifier;
 
+it('can set modifier type', function() {
+    $modifier = new Modifier;
+
+    expect($modifier->type())->toBe(Modifier::TYPE_UNDEFINED);
+    expect($modifier->setType('bar'))->toBe($modifier);
+    expect($modifier->type())->toBe('bar');
+});
+
+it('can set modifier key', function() {
+    $modifier = new Modifier;
+
+    expect($modifier->key())->toBeNull();
+    expect($modifier->setKey('foo-bar'))->toBe($modifier);
+    expect($modifier->key())->toBe('foo-bar');
+});
+
+it('can set modifier attributes', function() {
+    $modifier = new Modifier;
+
+    expect($modifier->attributes())->toBeNull();
+    expect($modifier->setAttributes([]))->toBe($modifier);
+    expect($modifier->attributes())->toBeNull();
+    expect($modifier->setAttributes(['test' => 'one']))->toBe($modifier);
+    expect($modifier->attributes())->toBe(['test' => 'one']);
+});
+
+it('can set modifier post-VAT application', function() {
+    $modifier = new Modifier;
+
+    expect($modifier->appliesAfterVat())->toBeFalse();
+    expect($modifier->setPostVat())->toBe($modifier);
+    expect($modifier->appliesAfterVat())->toBeTrue();
+    expect($modifier->setPostVat(false))->toBe($modifier);
+    expect($modifier->appliesAfterVat())->toBeFalse();
+});
+
+it('can set modifier per-unit application', function() {
+    $modifier = new Modifier;
+
+    expect($modifier->appliesPerUnit())->toBeTrue();
+    expect($modifier->setPerUnit(false))->toBe($modifier);
+    expect($modifier->appliesPerUnit())->toBeFalse();
+    expect($modifier->setPerUnit())->toBe($modifier);
+    expect($modifier->appliesPerUnit())->toBeTrue();
+});
+
+it('can perfom modifier additions', function() {
+    $modifier = new Modifier;
+
+    expect($modifier->add(100))->toBe($modifier);
+
+    $multiple = Price::EUR(500, 2)->addModifier('custom', $modifier);
+
+    expect($multiple->exclusive()->__toString())->toBe('EUR 12.00');
+
+    $modifier->setPerUnit(false);
+
+    $general = Price::EUR(500, 2)->addModifier('custom', $modifier);
+
+    expect($general->exclusive()->__toString())->toBe('EUR 11.00');
+});
+
+it('can perfom modifier subtractions', function() {
+    $modifier = new Modifier;
+
+    expect($modifier->subtract(100))->toBe($modifier);
+
+    $multiple = Price::EUR(500, 2)->addModifier('custom', $modifier);
+
+    expect($multiple->exclusive()->__toString())->toBe('EUR 8.00');
+
+    $modifier->setPerUnit(false);
+
+    $general = Price::EUR(500, 2)->addModifier('custom', $modifier);
+
+    expect($general->exclusive()->__toString())->toBe('EUR 9.00');
+});
+
 it('can add a callable modifier', function() {
     $price = Price::EUR(500, 2)->addModifier('custom', function($modifier) {
         $modifier->add(100);
