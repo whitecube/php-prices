@@ -9,17 +9,14 @@ use Tests\Fixtures\AmendableModifier;
 use Tests\Fixtures\NonAmendableModifier;
 use Tests\Fixtures\CustomAmendableModifier;
 
-// TODO : to be redefined with new modifiers API
+it('can add a callable modifier', function() {
+    $price = Price::EUR(500, 2)->addModifier('custom', function($modifier) {
+        $modifier->add(100);
+    });
 
-// it('can add a callable modifier', function() {
-//     $price = Price::EUR(500)->addModifier(function(Money $value) {
-//         return $value->multipliedBy(1.5);
-//     });
-
-//     assertInstanceOf(Price::class, $price);
-
-//     assertTrue(Money::EUR(750)->equals($price->exclusive()));
-// });
+    expect($price)->toBeInstanceOf(Price::class);
+    expect($price->exclusive()->__toString())->toBe('EUR 12.00');
+});
 
 // it('can add a modifier instance', function() {
 //     $callback = function(Money $value) {

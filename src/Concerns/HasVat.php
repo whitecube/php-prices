@@ -28,7 +28,7 @@ trait HasVat
             return $this;
         }
 
-        $this->vat = new Vat($value, $this->currency());
+        $this->vat = new Vat($value, $this);
 
         return $this;
     }
@@ -36,12 +36,12 @@ trait HasVat
     /**
      * Return the VAT definition object
      *
+     * @param bool $build
      * @return null|\Whitecube\Price\Vat
      */
-    public function vat()
+    public function vat($build = true)
     {
-        $this->build();
-
-        return $this->vat;
+        return $this->vat
+            ?? ($build ? new Vat(0, $this) : null);
     }
 }

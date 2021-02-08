@@ -3,18 +3,17 @@
 namespace Whitecube\Price;
 
 use Brick\Money\Money;
-use Brick\Money\Currency;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 
 class Vat
 {
     /**
-     * The VAT's percentage value
+     * The price this VAT object belongsTo
      *
-     * @var \Brick\Money\Currency
+     * @var \Whitecube\Price\Price
      */
-    private $currency;
+    private $price;
 
     /**
      * The VAT's percentage value
@@ -24,22 +23,15 @@ class Vat
     protected $percentage;
 
     /**
-     * The applied values
-     *
-     * @var null|array
-     */
-    protected $applied = null;
-
-    /**
      * Create a new VAT value
      *
      * @param mixed $value
-     * @param Brick\Money\Currency $currency
+     * @param \Whitecube\Price\Price $price
      * @return void
      */
-    public function __construct($value, Currency $currency)
+    public function __construct($value, Price $price)
     {
-        $this->currency = $currency;
+        $this->price = $price;
         $this->percentage = BigDecimal::of($value);
     }
 
@@ -61,31 +53,19 @@ class Vat
      */
     public function money($perUnit = false)
     {
-        $key = $perUnit ? 'unit' : 'all';
-
-        if(! $this->applied || ! ($this->applied[$key] ?? null)) {
-            return Money::zero($this->currency);
-        }
-
-        return $this->applied[$key];
+        return $this->price->build()->vat($perUnit);
     }
 
     /**
      * Compute the VAT's values
      *
      * @param \Brick\Money\Money $exclusive
-     * @param \Whitecube\Price\Price $price
-     * @return void
+     * @return \Brick\Money\Money
      */
-    public function apply(Money $exclusive, Price $price)
+    public function apply(Money $exclusive)
     {
         $multiplier = $this->percentage->dividedBy(100, $this->percentage->getScale() + 2, RoundingMode::UP);
 
-        $amount = $exclusive->multipliedBy($multiplier, Price::getRounding('vat'));
-
-        $this->applied = [
-            'all' => $amount,
-            'unit' => $price->perUnit($amount)
-        ];
+        return $exclusive->multipliedBy($multiplier, Price::getRounding('vat'));
     }
 }

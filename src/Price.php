@@ -12,6 +12,7 @@ class Price implements \JsonSerializable
     use Concerns\ParsesPrices;
     use Concerns\HasUnits;
     use Concerns\HasVat;
+    use Concerns\HasModifiers;
 
     /**
      * The rounding methods that should be used when calculating prices
@@ -135,7 +136,7 @@ class Price implements \JsonSerializable
     {
         return ($perUnit)
             ? $this->base
-            : $this->base->multipliedBy($this->units, static::getRounding('exclusive'));
+            : $this->applyUnits($this->base);
     }
 
     /**
@@ -147,19 +148,15 @@ class Price implements \JsonSerializable
      */
     public function exclusive($perUnit = false, $includeAfterVat = false)
     {
-        $this->build();
+        $result = $this->build()->exclusiveBeforeVat($perUnit ? true : false);
 
-        $amount = $this->calculator->exclusiveBeforeVat;
-
-        if($includeAfterVat) {
-            $amount = $amount->plus($this->calculator->exclusiveAfterVat, static::getRounding('exclusive'));
+        if(! $includeAfterVat) {
+            return $result['amount'];
         }
 
-        if($perUnit) {
-            return $this->perUnit($amount);
-        }
+        $supplement = $this->build()->exclusiveAfterVat($perUnit ? true : false);
 
-        return $amount;
+        return $result['amount']->plus($supplement['amount'], static::getRounding('exclusive'));
     }
 
     /**
@@ -170,21 +167,9 @@ class Price implements \JsonSerializable
      */
     public function inclusive($perUnit = false)
     {
-        $this->build();
+        $result = $this->build()->inclusive($perUnit ? true : false);
 
-        $amount = $this->calculator->exclusiveBeforeVat;
-
-        if($this->vat) {
-            $amount = $amount->plus($this->vat->money(false), static::getRounding('vat'));
-        }
-
-        $amount = $amount->plus($this->calculator->exclusiveAfterVat, static::getRounding('exclusive'));
-
-        if($perUnit) {
-            return $this->perUnit($amount);
-        }
-
-        return $amount;
+        return $result['amount'];
     }
 
     /**
@@ -209,128 +194,39 @@ class Price implements \JsonSerializable
     }
 
     /**
-     * Add a tax modifier
+     * Multiply the given amount by the number of available units
      *
-     * @param mixed $modifier
-     * @param null|string $key
-     * @param null|bool $pre
-     * @return $this
+     * @param \Brick\Money\Money $amount
+     * @param null|int $rounding
+     * @return \Brick\Money\Money
      */
-    public function addTax($modifier, $key = null, $pre = null)
+    public function applyUnits(Money $amount, int $rounding = null)
     {
-        return $this->addModifier($modifier, $key, Modifier::TYPE_TAX, $pre);
-    }
+        if(is_null($rounding)) {
+            $rounding = static::getRounding('exclusive');
+        }
 
-    /**
-     * Add a discount modifier
-     *
-     * @param mixed $modifier
-     * @param null|string $key
-     * @param null|bool $pre
-     * @return $this
-     */
-    public function addDiscount($modifier, $key = null, $pre = null)
-    {
-        return $this->addModifier($modifier, $key, Modifier::TYPE_DISCOUNT, $pre);
-    }
-
-    /**
-     * Add a price modifier
-     *
-     * @param array $arguments
-     * @return $this
-     */
-    public function addModifier(...$arguments)
-    {
-        $this->modifiers[] = $this->makeModifier($arguments);
-
-        $this->invalidate();
-
-        return $this;
+        return $amount->multipliedBy($this->units, $rounding);
     }
 
     /**
      * Return the current modifications history
      *
+     * @param bool $perUnit
      * @param null|string $type
      * @return array
      */
-    public function modifications($type = null)
+    public function modifications($perUnit = false, $type = null)
     {
-        $this->build();
-
-        $modifications = $this->calculator->modifications;
+        $result = $this->build()->inclusive($perUnit ? true : false);
 
         if(is_null($type)) {
-            return array_values($modifications);
+            return array_values($result['modifications']);
         }
 
-        return array_values(array_filter($modifications, function($modification) use ($type) {
+        return array_values(array_filter($result['modifications'], function($modification) use ($type) {
             return $modification['type'] === $type;
         }));
-    }
-
-    /**
-     * Create a usable modifier instance
-     *
-     * @param array $arguments
-     * @return \Whitecube\Price\PriceAmendable
-     * @throws \InvalidArgumentException
-     */
-    protected function makeModifier(array $arguments)
-    {
-        $modifier = array_shift($arguments);
-
-        if(is_null($modifier)) {
-            throw new \InvalidArgumentException('Cannot create modifier from NULL value.');
-        }
-
-        if(is_numeric($modifier)) {
-            $modifier = new Money($modifier, $this->base->getCurrency());
-        }
-
-        if(is_a($modifier, Money::class)) {
-            $modifier = function(Money $value) use ($modifier) {
-                return $value->plus($modifier, static::getRounding('exclusive'));
-            };
-        }
-
-        if (is_callable($modifier)) {
-            [$key, $type, $pre] = $this->extractModifierArguments($arguments);
-            $modifier = new Modifier($modifier, $key, $type, $pre);
-        } elseif (is_string($modifier) && class_exists($modifier)) {
-            $modifier = new $modifier(...$arguments);
-        }
-
-        if(!is_a($modifier, PriceAmendable::class)) {
-            throw new \InvalidArgumentException('Price modifier instance should implement "' . PriceAmendable::class . '".');
-        }
-
-        return $modifier;
-    }
-
-    /**
-     * Finds the named arguments from a loose modifier call
-     *
-     * @param array $arguments
-     * @return array
-     */
-    protected function extractModifierArguments(array $arguments)
-    {
-        switch (count($arguments)) {
-            case 0:
-                return [null, null, false];
-            case 1:
-                return [$arguments[0] ?: null, null, false];
-            case 2:
-                return [$arguments[0] ?: null, $arguments[1] ?: null, false];
-        }
-
-        return [
-            ($arguments[0] ?? null) ?: null,
-            ($arguments[1] ?? null) ?: null,
-            boolval($arguments[2] ?? null),
-        ];
     }
 
     /**
@@ -343,7 +239,7 @@ class Price implements \JsonSerializable
     public function getVatModifiers(bool $postVat)
     {
         return array_filter($this->modifiers, function($modifier) use ($postVat) {
-            return $modifier->isBeforeVat() === !$postVat;
+            return $modifier->appliesAfterVat() === $postVat;
         });
     }
 
@@ -367,10 +263,12 @@ class Price implements \JsonSerializable
     public function build()
     {
         if(! is_null($this->calculator)) {
-            return;
+            return $this->calculator;
         }
 
-        $this->calculator = new Calculator($this, $this->vat);
+        $this->calculator = new Calculator($this);
+
+        return $this->calculator;
     }
 
     /**

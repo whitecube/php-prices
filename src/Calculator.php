@@ -14,116 +14,210 @@ class Calculator
     private $price;
 
     /**
-     * The VAT configuration
-     *
-     * @var \Whitecube\Price\Vat
-     */
-    private $vat;
-
-    /**
-     * The exclusive amount without "after VAT" modifiers
-     *
-     * @var \Brick\Money\Money
-     */
-    public $exclusiveBeforeVat;
-
-    /**
-     * The exclusive "after VAT" amount
-     *
-     * @var \Brick\Money\Money
-     */
-    public $exclusiveAfterVat;
-
-    /**
-     * The applied modifiers history & results
+     * The previously calculated amounts
      *
      * @var array
      */
-    public $modifications = [];
+    private $cache = [];
 
     /**
-     * Create a new calculator and launch it immediately
+     * Create a new calculator
      *
      * @param \Whitecube\Price\Price $price
-     * @param null|\Whitecube\Price\Vat $vat
      * @return void
      */
-    public function __construct(Price $price, Vat $vat = null)
+    public function __construct(Price $price)
     {
         $this->price = $price;
-        $this->vat = $vat;
+    }
 
-        $this->exclusiveBeforeVat = $this->getBeforeVat();
+    /**
+     * Return the result for the "before VAT" Money build
+     *
+     * @param bool $perUnit
+     * @return array
+     */
+    public function exclusiveBeforeVat($perUnit)
+    {
+        return $this->getCached('exclusive_before_vat', $perUnit)
+            ?? $this->setCached('exclusive_before_vat', $perUnit, $this->getExclusiveBeforeVatResult($perUnit));
+    }
 
-        if($this->vat) {
-            $this->vat->apply($this->exclusiveBeforeVat, $this->price);
-        }
+    /**
+     * Return the result for the "VAT" Money build
+     *
+     * @param bool $perUnit
+     * @return \Brick\Money\Money
+     */
+    public function vat($perUnit)
+    {
+        return $this->getCached('vat', $perUnit)
+            ?? $this->setCached('vat', $perUnit, $this->getVatResult($perUnit));
+    }
 
-        $this->exclusiveAfterVat = $this->getAfterVat();
+    /**
+     * Return the result for the "after VAT" Money build
+     *
+     * @param bool $perUnit
+     * @return array
+     */
+    public function exclusiveAfterVat($perUnit)
+    {
+        return $this->getCached('exclusive_after_vat', $perUnit)
+            ?? $this->setCached('exclusive_after_vat', $perUnit, $this->getExclusiveAfterVatResult($perUnit));
+    }
+
+    /**
+     * Return the result for the complete Money build
+     *
+     * @param bool $perUnit
+     * @return array
+     */
+    public function inclusive($perUnit)
+    {
+        return $this->getCached('inclusive', $perUnit)
+            ?? $this->setCached('inclusive', $perUnit, $this->getInclusiveResult($perUnit));
+    }
+
+    /**
+     * Retrieve a cached value for key and unit mode
+     *
+     * @param string $key
+     * @param bool $perUnit
+     * @return null|array
+     */
+    protected function getCached($key, $perUnit)
+    {
+        return $this->cache[$key][$perUnit ? 'unit' : 'all'] ?? null;
+    }
+
+    /**
+     * Set a cached value for key and unit mode
+     *
+     * @param string $key
+     * @param bool $perUnit
+     * @param array $result
+     * @return array
+     */
+    protected function setCached($key, $perUnit, $result)
+    {
+        $this->cache[$key][$perUnit ? 'unit' : 'all'] = $result;
+
+        return $result;
     }
 
     /**
      * Compute the price for one unit before VAT is applied
      *
-     * @return \Brick\Money\Money
+     * @param bool $perUnit
+     * @return array
      */
-    protected function getBeforeVat()
+    protected function getExclusiveBeforeVatResult($perUnit)
     {
         $modifiers = $this->price->getVatModifiers(false);
 
-        return array_reduce($modifiers, function($amount, $modifier) {
-            $modified = $this->applyModifier($modifier, $amount, $amount);
+        $result = [
+            'amount' => $this->price->base($perUnit),
+            'modifications' => [],
+        ];
 
-            return $this->insertModifier($amount, $modified);
-        }, $this->price->base(false));
+        return array_reduce($modifiers, function($result, $modifier) use ($perUnit) {
+            return $this->applyModifier($modifier, $result, $perUnit);
+        }, $result);
     }
 
     /**
-     * Compute the price for one unit before VAT is applied
+     * Compute the price for one unit after VAT is applied
      *
-     * @return \Brick\Money\Money
+     * @param bool $perUnit
+     * @return array
      */
-    protected function getAfterVat()
+    protected function getExclusiveAfterVatResult($perUnit)
     {
         $modifiers = $this->price->getVatModifiers(true);
 
-        return array_reduce($modifiers, function($amount, $modifier) {
-            $modified = $this->applyModifier($modifier, $amount, $this->exclusiveBeforeVat, $this->vat, true);
+        $exclusive = $this->exclusiveBeforeVat($perUnit)['amount'];
+        
+        $this->vat($perUnit);
 
-            return $this->insertModifier($amount, $modified);
-        }, Money::zero($this->price->currency()));
+        $vat = $this->price->vat();
+
+        $result = [
+            'amount' => Money::zero($this->price->currency()),
+            'modifications' => [],
+        ];
+
+        return array_reduce($modifiers, function($result, $modifier) use ($perUnit, $exclusive, $vat) {
+            return $this->applyModifier($modifier, $result, $perUnit, true, $exclusive, $vat);
+        }, $result);
+    }
+
+    /**
+     * Compute the VAT
+     *
+     * @param bool $perUnit
+     * @return \Brick\Money\Money
+     */
+    protected function getVatResult($perUnit)
+    {
+        $vat = $this->price->vat(false);
+
+        if(! $vat) {
+            return Money::zero($this->price->currency());
+        }
+
+        $exclusive = $this->exclusiveBeforeVat($perUnit)['amount'];
+
+        return $vat->apply($exclusive);
+    }
+
+    /**
+     * Compute the complete price
+     *
+     * @param bool $perUnit
+     * @return array
+     */
+    protected function getInclusiveResult($perUnit)
+    {
+        $result = $this->exclusiveBeforeVat($perUnit);
+
+        $result['amount'] = $result['amount']->plus($this->vat($perUnit), Price::getRounding('vat'));
+
+        $supplement = $this->exclusiveAfterVat($perUnit);
+
+        $result['amount'] = $result['amount']->plus($supplement['amount'], Price::getRounding('exclusive'));
+        $result['modifications'] = array_merge($result['modifications'], $supplement['modifications']);
+
+        return $result;
     }
 
     /**
      * Compute the price for one unit before VAT is applied
      *
      * @param \Whitecube\Price\PriceAmendable $modifier
-     * @param \Brick\Money\Money $build
-     * @param \Brick\Money\Money $exclusive
-     * @param null|\Whitecube\Price\Vat $vat
+     * @param array $result
+     * @param bool $perUnit
      * @param bool $postVat
+     * @param null|\Brick\Money\Money $exclusive
+     * @param null|\Whitecube\Price\Vat $vat
      * @return \Brick\Money\Money
      */
-    protected function applyModifier(PriceAmendable $modifier, Money $build, Money $exclusive, Vat $vat = null, $postVat = false)
+    protected function applyModifier(PriceAmendable $modifier, array $result, $perUnit, $postVat = false, Money $exclusive = null, Vat $vat = null)
     {
-        return array_filter([
-            'amount' => $modifier->apply($build, $exclusive, $vat),
+        $updated = $modifier->apply($result['amount'], $this->price->units(), $perUnit, $exclusive, $vat);
+
+        $result['modifications'][] = array_filter([
+            'amount' => $updated ? $updated->minus($result['amount']) : null,
             'post' => $postVat,
             'type' => $modifier->type(),
             'key' => $modifier->key(),
             'attributes' => $modifier->attributes() ?: null,
         ]);
-    }
 
-    /**
-     * Compute the price for one unit before VAT is applied
-     *
-     * @return \Brick\Money\Money
-     */
-    protected function insertModifier(Money $amount, $modified)
-    {
-        $this->modifications[] = $modified;
+        if($updated) {
+            $result['amount'] = $updated;
+        }
 
-        return $amount->plus($modified->amount());
+        return $result;
     }
 }
