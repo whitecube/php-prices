@@ -327,9 +327,10 @@ $price = Price::USD(1250)
 
 Furthermore, using closure modifiers you can also add other useful configurations, such as:
 
-- `setKey(string $key)` : define an identifier on the modifier. This can be anything and its main purpose is to make a modifier recognizable on display, for instance a translation key or a CSS class name ;
+- `setKey(string $key)` : Define an identifier on the modifier. This can be anything and its main purpose is to make a modifier recognizable on display, for instance a translation key or a CSS class name ;
 - `setPostVat(bool $postVat = true)` : **Default:** `false`. Indicate whether the modifier should be applied before (`false`) or after (`true`) the VAT has been calculated. More information on this feature [below](#before-or-after-vat).
 - `setPerUnit(bool $perUnit = true)` : **Default:** `true`. Indicate whether the `add()` and `subtract()` operations define "per-unit" amounts instead of providing a fixed amount that would be applied no matter the quantity.
+- `setAttributes(array $attributes = [])` : Define as many extra modifier attributes as needed. This can be very usefull in order to display the applied modifiers in complex user interfaces.
 
 #### Modifier classes
 
