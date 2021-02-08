@@ -12,6 +12,8 @@ trait HasUnits
      */
     public function setUnits($value)
     {
+        $this->invalidate();
+        
         $this->units = floatval(str_replace(',', '.', $value));
 
         return $this;

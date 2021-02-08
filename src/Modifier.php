@@ -81,6 +81,17 @@ class Modifier implements PriceAmendable
     }
 
     /**
+     * Get the modifier attributes that should be saved in the
+     * price modification history.
+     *
+     * @return null|array
+     */
+    public function attributes() : ?array
+    {
+        return null;
+    }
+
+    /**
      * Whether the modifier should be applied before the
      * VAT value has been computed.
      *
@@ -94,10 +105,12 @@ class Modifier implements PriceAmendable
     /**
      * Apply the modifier on the given Money instance
      *
-     * @param \Brick\Money\Money $value
-     * @return \Brick\Money\Money
+     * @param \Brick\Money\Money $build
+     * @param \Brick\Money\Money $exclusive
+     * @param null|\Whitecube\Price\Vat $vat
+     * @return null|\Brick\Money\Money
      */
-    public function apply(Money $value) : ?Money
+    public function apply(Money $build, Money $exclusive, Vat $vat = null) : ?Money
     {
         if(!is_callable($this->callback)) {
             return null;

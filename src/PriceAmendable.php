@@ -21,6 +21,14 @@ interface PriceAmendable
     public function key() : ?string;
 
     /**
+     * Get the modifier attributes that should be saved in the
+     * price modification history.
+     *
+     * @return null|array
+     */
+    public function attributes() : ?array;
+
+    /**
      * Whether the modifier should be applied before the
      * VAT value has been computed.
      *

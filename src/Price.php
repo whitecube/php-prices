@@ -5,13 +5,13 @@ namespace Whitecube\Price;
 use Brick\Money\Money;
 use Brick\Money\ISOCurrencyProvider;
 use Brick\Math\RoundingMode;
-use Brick\Math\BigDecimal;
 
 class Price implements \JsonSerializable
 {
     use Concerns\OperatesOnBase;
     use Concerns\ParsesPrices;
     use Concerns\HasUnits;
+    use Concerns\HasVat;
 
     /**
      * The rounding methods that should be used when calculating prices
@@ -31,16 +31,9 @@ class Price implements \JsonSerializable
     protected $base;
 
     /**
-     * The base exclusive price (after modification)
+     * The VAT definition
      *
-     * @var null|\Brick\Money\Money
-     */
-    protected $excl;
-
-    /**
-     * The VAT's percentage of the base price
-     *
-     * @var null|\Brick\Math\BigDecimal
+     * @var null|\Whitecube\Price\Vat
      */
     protected $vat;
 
@@ -63,7 +56,7 @@ class Price implements \JsonSerializable
      *
      * @var array
      */
-    protected $modifications = [];
+    private $calculator;
 
     /**
      * Create a new Price object
@@ -146,68 +139,27 @@ class Price implements \JsonSerializable
     }
 
     /**
-     * Add a VAT value
-     *
-     * @param mixed $value
-     * @return $this
-     */
-    public function setVat($value = null)
-    {
-        if(is_null($value)) {
-            $this->vat = null;
-        } elseif (is_a($value, Money::class)) {
-            $value = $this->base->getAmount()->quotient($value->getAmount());
-            $this->vat = BigDecimal::of(100)->dividedBy($value, 2);
-        } else {
-            $this->vat = BigDecimal::of(str_replace(',', '.', trim($value, ' %')));
-        }
-
-        return $this;
-    }
-
-    /**
-     * Return the VAT Money value
-     *
-     * @param bool $perUnit
-     * @return null|\Brick\Money\Money
-     */
-    public function vat($perUnit = false)
-    {
-        if(is_null($this->vat)) {
-            return null;
-        }
-
-        $base = $this->applyModifiers(
-            $this->base, $this->getModifiers(true), false
-        );
-
-        return $base->multipliedBy(
-            $this->vat->dividedBy(100, 4, RoundingMode::HALF_UP)->multipliedBy($perUnit ? 1 : $this->units),
-            static::getRounding('vat')
-        );
-    }
-
-    /**
-     * Return the VAT Money value
-     *
-     * @return null|float
-     */
-    public function vatPercentage()
-    {
-        return $this->vat ? $this->vat->toFloat() : null;
-    }
-
-    /**
      * Return the EXCL. Money value
      *
      * @param bool $perUnit
+     * @param bool $includeAfterVat
      * @return \Brick\Money\Money
      */
-    public function exclusive($perUnit = false)
+    public function exclusive($perUnit = false, $includeAfterVat = false)
     {
-        // TODO : refactor with rounding applied correctly
-        return $this->getModifiedBase()
-            ->multipliedBy($perUnit ? 1 : $this->units, static::getRounding('exclusive'));
+        $this->build();
+
+        $amount = $this->calculator->exclusiveBeforeVat;
+
+        if($includeAfterVat) {
+            $amount = $amount->plus($this->calculator->exclusiveAfterVat, static::getRounding('exclusive'));
+        }
+
+        if($perUnit) {
+            return $this->perUnit($amount);
+        }
+
+        return $amount;
     }
 
     /**
@@ -218,13 +170,42 @@ class Price implements \JsonSerializable
      */
     public function inclusive($perUnit = false)
     {
-        // TODO : refactor with rounding applied correctly
-        if(is_null($this->vat)) {
-            return $this->exclusive($perUnit);
+        $this->build();
+
+        $amount = $this->calculator->exclusiveBeforeVat;
+
+        if($this->vat) {
+            $amount = $amount->plus($this->vat->getAmount(false), static::getRounding('vat'));
         }
 
-        return $this->exclusive($perUnit)
-            ->plus($this->vat($perUnit), static::getRounding('vat'));
+        $amount = $amount->plus($this->calculator->exclusiveAfterVat, static::getRounding('exclusive'));
+
+        if($perUnit) {
+            return $this->perUnit($amount);
+        }
+
+        return $amount;
+    }
+
+    /**
+     * Split given amount into ~equal parts and return the smallest
+     *
+     * @param \Brick\Money\Money $amount
+     * @return \Brick\Money\Money
+     */
+    public function perUnit(Money $amount)
+    {
+        if($this->units === floatval(1)) {
+            return $amount;
+        }
+
+        $parts = floor($this->units);
+
+        $remainder = $amount->multipliedBy($this->units - $parts, RoundingMode::FLOOR);
+        
+        $allocated = $amount->minus($remainder);
+
+        return Money::min(...$allocated->split($parts));
     }
 
     /**
@@ -263,8 +244,7 @@ class Price implements \JsonSerializable
     {
         $this->modifiers[] = $this->makeModifier($arguments);
 
-        $this->excl = null;
-        $this->modifications = [];
+        $this->invalidate();
 
         return $this;
     }
@@ -277,17 +257,17 @@ class Price implements \JsonSerializable
      */
     public function modifications($type = null)
     {
-        if(is_null($this->excl)) {
-            $this->getModifiedBase();
+        $this->build();
+
+        $modifications = $this->calculator->modifications;
+
+        if(is_null($type)) {
+            return array_values($modifications);
         }
 
-        $modifications = is_null($type) 
-            ? $this->modifications
-            : array_filter($this->modifications, function($item) use ($type) {
-                return $item['type'] === $type;
-            });
-
-        return array_values($modifications);
+        return array_values(array_filter($modifications, function($modification) use ($type) {
+            return $modification['type'] === $type;
+        }));
     }
 
     /**
@@ -354,76 +334,43 @@ class Price implements \JsonSerializable
     }
 
     /**
-     * Get the price's modified exclusive base price
-     *
-     * @return \Brick\Money\Money
-     */
-    protected function getModifiedBase()
-    {
-        if(!is_null($this->excl)) {
-            return $this->excl;
-        }
-
-        $this->modifications = [];
-
-        $withoutVat = $this->applyModifiers(
-            $this->base, $this->getModifiers(true), true
-        );
-
-        return $this->excl = $this->applyModifiers(
-            $withoutVat, $this->getModifiers(false), true
-        );
-    }
-
-    /**
-     * Apply the given modifiers array on the given base price
-     *
-     * @param \Brick\Money\Money $base
-     * @param array $modifiers
-     * @param bool $log
-     * @return \Brick\Money\Money
-     */
-    protected function applyModifiers(Money $base, array $modifiers, $log = true)
-    {
-        return array_reduce($modifiers, function($base, $modifier) use ($log) {
-            $result = $modifier->apply($base);
-
-            if(!$result) return $base;
-
-            if($log) $this->pushModifierResult($result->minus($base, static::getRounding('exclusive')), $modifier);
-
-            return $result;
-        }, $base);
-    }
-
-    /**
-     * Add a modifier's result to the modified history array
-     *
-     * @param \Brick\Money\Money $amount
-     * @param \Whitecube\Price\PriceAmendable $modifier
-     * @return void
-     */
-    protected function pushModifierResult(Money $amount, PriceAmendable $modifier)
-    {
-        $this->modifications[] = [
-            'type' => $modifier->type(),
-            'key' => $modifier->key(),
-            'amount' => $amount
-        ];
-    }
-
-    /**
      * Get the defined modifiers from before or after the
      * VAT value should have been applied
      *
-     * @param bool $before
+     * @param bool $postVat
      * @return array
      */
-    protected function getModifiers(bool $before)
+    public function getVatModifiers(bool $postVat)
     {
-        return array_filter($this->modifiers, function($modifier) use ($before) {
-            return $modifier->isBeforeVat() === $before;
+        return array_filter($this->modifiers, function($modifier) use ($postVat) {
+            return $modifier->isBeforeVat() === !$postVat;
         });
+    }
+
+    /**
+     * Reset the price calculator, forcing it to rebuild
+     * next time a computed value is requested.
+     *
+     * @return void
+     */
+    public function invalidate()
+    {
+        $this->calculator = null;
+    }
+
+    /**
+     * Launch the total price calculator only if
+     * it does not yet exist or has been invalidated.
+     *
+     * @return void
+     */
+    public function build()
+    {
+        if(! is_null($this->calculator)) {
+            return;
+        }
+
+        $this->calculator = new Calculator($this, $this->vat);
     }
 
     /**
@@ -451,7 +398,7 @@ class Price implements \JsonSerializable
             'base' => $this->base->getMinorAmount(),
             'currency' => $this->base->getCurrency()->getCurrencyCode(),
             'units' => $this->units,
-            'vat' => $this->vat,
+            'vat' => $this->vat->getPercentage(),
             'total' => [
                 'exclusive' => $excl->getMinorAmount(),
                 'inclusive' => $incl->getMinorAmount(),

@@ -28,6 +28,8 @@ trait OperatesOnBase
         }
 
         $this->base = $result;
+        
+        $this->invalidate();
 
         return $this;
     }
