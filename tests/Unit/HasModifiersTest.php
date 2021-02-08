@@ -87,6 +87,36 @@ it('can perfom modifier subtractions', function() {
     expect($general->exclusive()->__toString())->toBe('EUR 9.00');
 });
 
+it('can perfom modifier multiplications', function() {
+    $modifier = new Modifier;
+
+    expect($modifier->multiply(10))->toBe($modifier);
+
+    $price = Price::EUR(500, 2)->addModifier('custom', $modifier);
+
+    expect($price->exclusive()->__toString())->toBe('EUR 100.00');
+});
+
+it('can perfom modifier divisions', function() {
+    $modifier = new Modifier;
+
+    expect($modifier->divide(10))->toBe($modifier);
+
+    $price = Price::EUR(500, 2)->addModifier('custom', $modifier);
+
+    expect($price->exclusive()->__toString())->toBe('EUR 1.00');
+});
+
+it('can perform modifier absolute value', function() {
+    $modifier = new Modifier;
+
+    expect($modifier->abs())->toBe($modifier);
+
+    $price = Price::EUR(-500, 2)->addModifier('custom', $modifier);
+
+    expect($price->exclusive()->__toString())->toBe('EUR 10.00');
+});
+
 it('can add a callable modifier', function() {
     $price = Price::EUR(500, 2)->addModifier('custom', function($modifier) {
         $modifier->add(100);
