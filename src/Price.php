@@ -175,7 +175,7 @@ class Price implements \JsonSerializable
         $amount = $this->calculator->exclusiveBeforeVat;
 
         if($this->vat) {
-            $amount = $amount->plus($this->vat->getAmount(false), static::getRounding('vat'));
+            $amount = $amount->plus($this->vat->money(false), static::getRounding('vat'));
         }
 
         $amount = $amount->plus($this->calculator->exclusiveAfterVat, static::getRounding('exclusive'));
@@ -398,7 +398,7 @@ class Price implements \JsonSerializable
             'base' => $this->base->getMinorAmount(),
             'currency' => $this->base->getCurrency()->getCurrencyCode(),
             'units' => $this->units,
-            'vat' => $this->vat->getPercentage(),
+            'vat' => $this->vat->percentage(),
             'total' => [
                 'exclusive' => $excl->getMinorAmount(),
                 'inclusive' => $incl->getMinorAmount(),

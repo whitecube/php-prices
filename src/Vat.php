@@ -48,7 +48,7 @@ class Vat
      *
      * @return float
      */
-    public function getPercentage()
+    public function percentage()
     {
         return $this->percentage->toFloat();
     }
@@ -59,7 +59,7 @@ class Vat
      * @param bool $perUnit
      * @return \Brick\Money\Money
      */
-    public function getAmount($perUnit = false)
+    public function money($perUnit = false)
     {
         $key = $perUnit ? 'unit' : 'all';
 

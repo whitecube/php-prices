@@ -34,7 +34,7 @@ it('hydrates instance from JSON string', function() {
     expect($instance)->toBeInstanceOf(Price::class);
     expect($instance->getAmount()->compareTo($price->base()->getAmount()))->toBe(0);
     expect($instance->units())->toBe(floatval(3));
-    expect($instance->vat()->getPercentage())->toBe(10.75);
+    expect($instance->vat()->percentage())->toBe(10.75);
 });
 
 it('hydrates instance from JSON array', function() {
@@ -54,5 +54,5 @@ it('hydrates instance from JSON array', function() {
     expect($instance)->toBeInstanceOf(Price::class);
     expect($instance->getAmount()->compareTo(Money::of(5,'EUR')->getAmount()))->toBe(0);
     expect($instance->units())->toBe(floatval(3));
-    expect($instance->vat()->getPercentage())->toBe(10.75);
+    expect($instance->vat()->percentage())->toBe(10.75);
 });
