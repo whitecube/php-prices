@@ -28,7 +28,7 @@ trait HasModifiers
      * @param array $arguments
      * @return $this
      */
-    public function addDiscount($modifier)
+    public function addDiscount($modifier, ...$arguments)
     {
         return $this->addModifier(Modifier::TYPE_DISCOUNT, $modifier, ...$arguments);
     }
@@ -87,6 +87,8 @@ trait HasModifiers
 
         if(is_object($modifier) && ! is_a($modifier, Money::class)) {
             throw new \InvalidArgumentException('Price modifier instance should implement "' . PriceAmendable::class . '".');
+        } elseif (! is_object($modifier) && ! is_numeric($modifier)) {
+            throw new \InvalidArgumentException('Price modifier cannot be of type ' . gettype($modifier) . '.');
         }
 
         return $instance->add($modifier, Price::getRounding('exclusive'));

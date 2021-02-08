@@ -117,6 +117,33 @@ it('can perform modifier absolute value', function() {
     expect($price->exclusive()->__toString())->toBe('EUR 10.00');
 });
 
+it('cannot add a NULL modifier', function() {
+    Price::EUR(500, 2)->addModifier('custom', null);
+})->throws(\InvalidArgumentException::class);
+
+it('cannot add an invalid modifier', function() {
+    Price::EUR(500, 2)->addModifier('custom', ['something','unusable']);
+})->throws(\InvalidArgumentException::class);
+
+it('cannot add a non-PriceAmendable modifier instance', function() {
+    Price::EUR(500, 2)->addModifier('custom', new NonAmendableModifier());
+})->throws(\InvalidArgumentException::class);
+
+it('can add a numeric modifier', function() {
+    $price = Price::EUR(500, 2)->addModifier('custom', '-100');
+
+    expect($price)->toBeInstanceOf(Price::class);
+    expect($price->exclusive()->__toString())->toBe('EUR 8.00');
+});
+
+it('can add a Money instance modifier', function() {
+    $money = Money::of(1, 'EUR');
+    $price = Price::EUR(500, 2)->addModifier('custom', $money);
+
+    expect($price)->toBeInstanceOf(Price::class);
+    expect($price->exclusive()->__toString())->toBe('EUR 12.00');
+});
+
 it('can add a callable modifier', function() {
     $price = Price::EUR(500, 2)->addModifier('custom', function($modifier) {
         $modifier->add(100);
@@ -160,61 +187,29 @@ it('can add a modifier instance', function() {
 //     assertTrue(Money::EUR(750)->equals($price->exclusive()));
 // });
 
-// it('can add a numeric modifier', function() {
-//     $price = Price::EUR(500)->addModifier('-100');
+it('can add a tax modifier', function() {
+    $price = Price::EUR(500, 2)->addTax(100);
 
-//     assertInstanceOf(Price::class, $price);
+    expect($price)->toBeInstanceOf(Price::class);
 
-//     assertTrue(Money::EUR(400)->equals($price->exclusive()));
-// });
+    $modifier = $price->getVatModifiers(false)[0];
 
-// it('can add a Money modifier instance', function() {
-//     $price = Price::EUR(500)->addModifier(Money::EUR(150));
+    expect($modifier->type())->toBe(Modifier::TYPE_TAX);
 
-//     assertInstanceOf(Price::class, $price);
+    expect($price->exclusive()->__toString())->toBe('EUR 12.00');
+});
 
-//     assertTrue(Money::EUR(650)->equals($price->exclusive()));
-// });
+it('can add a discount modifier', function() {
+    $price = Price::EUR(500, 2)->addDiscount(-100);
 
-// it('cannot add a NULL modifier', function() {
-//     $this->expectException(\InvalidArgumentException::class);
+    expect($price)->toBeInstanceOf(Price::class);
 
-//     Price::EUR(500)->addModifier(null);
-// });
+    $modifier = $price->getVatModifiers(false)[0];
 
-// it('cannot add an invalid modifier', function() {
-//     $this->expectException(\InvalidArgumentException::class);
+    expect($modifier->type())->toBe(Modifier::TYPE_DISCOUNT);
 
-//     Price::EUR(500)->addModifier(['something','unusable']);
-// });
-
-// it('cannot add a non-PriceAmendable modifier instance', function() {
-//     $this->expectException(\InvalidArgumentException::class);
-
-//     $modifier = new NonAmendableModifier();
-
-//     Price::EUR(500)->addModifier($modifier);
-// });
-
-// it('can add a tax modifier', function() {
-//     $price = Price::EUR(500)->addTax(function(Money $value) {
-//         return $value->plus(Money::EUR(50));
-//     });
-
-//     assertInstanceOf(Price::class, $price);
-
-//     assertTrue(Money::EUR(550)->equals($price->exclusive()));
-// });
-
-// it('can add a discount modifier', function() {
-//     $price = Price::EUR(500)->addDiscount(function(Money $value) {
-//         return $value->minus(Money::EUR(50));
-//     });
-
-//     assertInstanceOf(Price::class, $price);
-
-//     assertTrue(Money::EUR(450)->equals($price->exclusive()));
-// });
+    expect($price->exclusive()->__toString())->toBe('EUR 8.00');
+});
 
 // it('can apply modifiers before computing VAT', function() {
 //     $price = Price::EUR(500)
