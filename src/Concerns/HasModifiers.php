@@ -72,9 +72,7 @@ trait HasModifiers
             throw new \InvalidArgumentException('Price modifier cannot be null or empty.');
         }
 
-        $instance = (new Modifier)
-            ->setType($type)
-            ->setCurrency($this->currency());
+        $instance = (new Modifier)->setType($type);
 
         if (is_callable($modifier)) {
             $modifier($instance);

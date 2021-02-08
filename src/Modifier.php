@@ -30,13 +30,6 @@ class Modifier implements PriceAmendable
     protected $key;
 
     /**
-     * The modifier's currency
-     *
-     * @var null|string
-     */
-    protected $currency;
-
-    /**
      * Whether this modifier should be executed
      * before or after the VAT value has been computed.
      *
@@ -73,8 +66,7 @@ class Modifier implements PriceAmendable
             ->setType($configuration['type'] ?? null)
             ->setKey($configuration['key'] ?? null)
             ->setPostVat($configuration['postVat'] ?? false)
-            ->setPerUnit($configuration['perUnit'] ?? true)
-            ->setCurrency($configuration['currency'] ?? null);
+            ->setPerUnit($configuration['perUnit'] ?? true);
     }
 
     /**
@@ -121,19 +113,6 @@ class Modifier implements PriceAmendable
     public function key() : ?string
     {
         return $this->key;
-    }
-
-    /**
-     * Define the modifier's identification key
-     *
-     * @param null|string|\Brick\Money\Currency $currency
-     * @return $this
-     */
-    public function setCurrency($currency = null)
-    {
-        $this->currency = $currency;
-
-        return $this;
     }
 
     /**
