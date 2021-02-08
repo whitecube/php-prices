@@ -262,12 +262,9 @@ Modifiers are all the custom operations a business needs to apply on a price bef
 use Whitecube\Price\Price;
 use Brick\Money\Money;
 
-$price = Price::USD(800, 5)                 // 5 x $8.00
-    ->addDiscount(-100)                     // 5 x $7.00
-    ->addDiscount(Money::USD(-50));         // 5 x $6.50
-
-// Add discount identifiers if needed:
-$price->addDiscount(-50, 'nice-customer');  // 5 x $6.00
+$price = Price::USD(800, 5)                         // 5 x $8.00
+    ->addDiscount(-100)                             // 5 x $7.00
+    ->addDiscount(Money::of(-5, 'USD'));            // 5 x $6.50
 ```
 
 ### Taxes (other than VAT)
@@ -276,62 +273,63 @@ $price->addDiscount(-50, 'nice-customer');  // 5 x $6.00
 use Whitecube\Price\Price;
 use Brick\Money\Money;
 
-$price = Price::EUR(125, 10)                // 10 x €1.25
-    ->addTax(100)                           // 10 x €2.25                     
-    ->addTax(Money::EUR(50));               // 10 x €2.75
-
-// Add tax identifiers if needed:
-$price->addTax(50, 'grumpy-customer');      // 10 x €3.25
+$price = Price::EUR(125, 10)                        // 10 x €1.25
+    ->addTax(100)                                   // 10 x €2.25                     
+    ->addTax(Money::of(0.5, 'EUR'));                // 10 x €2.75
 ```
 
-### Custom behavior
+### Custom modifier types
 
-Sometimes modifiers cannot be categorized into "discounts" or "taxes", in which case you can add an anonymous "other" modifier type:
+Sometimes modifiers cannot be categorized into "discounts" or "taxes", in which case you can add your own modifier type:
 
 ```php
 use Whitecube\Price\Price;
 use Brick\Money\Money;
 
-$price = Price::USD(2000)                   // 1 x $20.00
-    ->addModifier(500)                      // 1 x $25.00                
-    ->addModifier(Money::USD(-250));        // 1 x $22.50
-
-// Add modifier identifiers if needed:
-$price->addModifier(50, 'extra-sauce');     // 1 x $23.00
+$price = Price::USD(2000)                           // 1 x $20.00
+    ->addModifier('coupon', -500)                   // 1 x $15.00                
+    ->addModifier('extra', Money::of(2, 'USD'));    // 1 x $17.00
 ```
 
-#### Custom modifier types
+> 💡 **Nice to know**: Modifier types (`tax`, `discount` or your own) are useful for filtering, grouping and displaying sub-totals or price construction details. More information in the ["Displaying modification details" section](#displaying-modification-details) below.
 
-This package provides an easy way to create your own category of modifiers if you need to differenciate them from classical discounts or taxes.
+### Complex modifiers
+
+Most of the time, modifiers are more complex to define than simple "+" or "-" operations. Depending on the level of complexity, there are a few options that will let you configure your modifiers just as you wish.
+
+#### Closure modifiers
+
+Instead of providing a monetary value to the modifiers, you can use a closure which will get a `Whitecube\Price\Modifier` instance. This object can then be used to perform some operations on the price value. Available operations are :
+
+- `add()` : registers a `plus()` method call on the `Money` object ;
+- `subtract()` : registers a `minus()` method call on the `Money` object ;
+- `multiply()` : registers a `multipliedBy()` method call on the `Money` object ;
+- `divide()` : registers a `dividedBy()` method call on the `Money` object ;
+- `abs()` : registers a `abs()` method call on the `Money` object ;
+
+All these methods have the same signatures as their `Brick\Money\Money` equivalent. The reason we're not using the same method names is to imply object mutability.
 
 ```php
 use Whitecube\Price\Price;
-
-$price = Price::EUR(800, 5)
-    ->addModifier(-50, 'my-modifier-key', 'my-modifier-type');
-```
-
-> 💡 **Nice to know**: Modifier types (`tax`, `discount`, `other` and your own) are useful for filtering, grouping and displaying sub-totals or price construction details. More information in the ["Displaying modification details" section](#displaying-modification-details) below.
-
-#### Modifier closures
-
-Most of the time, modifiers are more complex to define than simple "+" or "-" operations. Therefore, it is possible to provide your own application logic by passing a closure instead of a monetary value:
-
-```php
-use Whitecube\Price\Price;
-use Brick\Money\Money;
+use Whitecube\Price\Modifier;
 
 $price = Price::USD(1250)
-    ->addDiscount(function(Money $value) {
-        return $value->subtract($value->multiply(0.10));
+    ->addDiscount(function(Modifier $discount) {
+        $discount->subtract(100)->multiply(0.95);
     })
-    ->addTax(function(Money $value) {
-        return $value->add($value->multiply(0.27));
+    ->addTax(function(Modifier $tax) {
+        $tax->add(250);
     })
-    ->addModifier(function(Money $value) {
-        return $value->divide(2);
+    ->addModifier('lucky', function(Money $modifier) {
+        $modifier->divide(2);
     });
 ```
+
+Furthermore, using closure modifiers you can also add other useful configurations, such as:
+
+- `setKey(string $key)` : define an identifier on the modifier. This can be anything and its main purpose is to make a modifier recognizable on display, for instance a translation key or a CSS class name ;
+- `setPostVat(bool $postVat = true)` : **Default:** `false`. Indicate whether the modifier should be applied before (`false`) or after (`true`) the VAT has been calculated. More information on this feature [below](#before-or-after-vat).
+- `setPerUnit(bool $perUnit = true)` : **Default:** `true`. Indicate whether the `add()` and `subtract()` operations define "per-unit" amounts instead of providing a fixed amount that would be applied no matter the quantity.
 
 #### Modifier classes
 

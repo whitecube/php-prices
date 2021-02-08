@@ -7,13 +7,12 @@ use Brick\Money\Money;
 class Modifier implements PriceAmendable
 {
     /**
-     * The modifier types
+     * The default modifier types
      *
      * @var string
      */
     const TYPE_TAX = 'tax';
     const TYPE_DISCOUNT = 'discount';
-    const TYPE_UNDEFINED = 'other';
 
     /**
      * The effective modifier type
