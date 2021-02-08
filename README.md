@@ -129,6 +129,15 @@ $perUnit = $price->inclusive(true);             // Brick\Money\Money
 $allUnits = $price->inclusive();                // Brick\Money\Money
 ```
 
+The **VAT** variables:
+
+```php
+$vat = $price->vat();                           // Whitecube\Price\Vat
+$percentage = $price->vat()->percentage();      // float
+$perUnit = $price->vat()->money(true);          // Brick\Money\Money
+$allUnits = $price->vat()->money();             // Brick\Money\Money
+```
+
 ### Comparing amounts
 
 It is possible to check whether a price object's **total inclusive amount** is greater, lesser or equal to another value using the `compareTo` method:
@@ -218,7 +227,7 @@ $quantity = $price->units();                            // 1.75
 
 ## Setting VAT
 
-VAT can be added in two ways: by providing its relative value (eg. 21%) or by setting its monetary value directly (eg. €2.50).
+VAT can be added by providing its relative value (eg. 21%):
 
 ```php
 use Whitecube\Price\Price;
@@ -227,7 +236,7 @@ $price = Price::USD(200);                   // 1 x $2.00
 
 $price->setVat(21);                         // VAT is now 21.0%, or $0.42 per unit
 
-$price->setVat(Money::USD(100));            // VAT is now 50.0%, or $1.00 per unit
+$price->setVat(null);                       // VAT is unset
 ```
 
 Once set, the price object will be able to provide various VAT-related information:
@@ -237,11 +246,10 @@ use Whitecube\Price\Price;
 
 $price = Price::EUR(500, 3)->setVat(10);    // 3 x €5.00
 
-$percentage = $price->vatPercentage();      // 10.0
+$percentage = $price->vat()->percentage();  // 10.0
 
-$vat = $price->vat();                       // €1.50
-
-$vatPerUnit = $price->vat(true);            // €0.50
+$perUnit = $price->vat()->money(true);      // €0.50
+$allUnits = $price->vat()->money();         // €1.50
 ```
 
 ## Setting modifiers
