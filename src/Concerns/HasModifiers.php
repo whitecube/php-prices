@@ -4,6 +4,7 @@ namespace Whitecube\Price\Concerns;
 
 use Whitecube\Price\Price;
 use Whitecube\Price\Modifier;
+use Whitecube\Price\PriceAmendable;
 use Brick\Money\Money;
 
 trait HasModifiers

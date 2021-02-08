@@ -18,19 +18,13 @@ it('can add a callable modifier', function() {
     expect($price->exclusive()->__toString())->toBe('EUR 12.00');
 });
 
-// it('can add a modifier instance', function() {
-//     $callback = function(Money $value) {
-//         return $value->multipliedBy(2);
-//     };
+it('can add a modifier instance', function() {
+    $modifier = (new Modifier)->multiply(2)->subtract(200);
 
-//     $modifier = new Modifier($callback);
+    $price = Price::EUR(500, 3)->addModifier('custom', $modifier);
 
-//     $price = Price::EUR(500)->addModifier($modifier);
-
-//     assertInstanceOf(Price::class, $price);
-
-//     assertTrue(Money::EUR(1000)->equals($price->exclusive()));
-// });
+    expect($price->exclusive()->__toString())->toBe('EUR 24.00');
+});
 
 // it('can add a custom amendable modifier instance', function() {
 //     $modifier = new AmendableModifier();
