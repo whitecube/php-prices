@@ -517,12 +517,20 @@ When debugging or building complex user interfaces, it is often necessary to ret
 $history = $price->modifications(); // Array containing chronological modifier results
 ```
 
-It is also possible to filter this history based on the modifier types:
+Each history item contains the amount it applied to the total price. If you want to query these modifications with their "per-unit" value:
 
 ```php
 use Whitecube\Price\Modifier;
 
-$history = $price->modifications(Modifier::TYPE_DISCOUNT);  // Only returning discount results
+$perUnitHistory = $price->modifications(true);
+```
+
+Filter this history based on the modifier types:
+
+```php
+use Whitecube\Price\Modifier;
+
+$history = $price->modifications(false, Modifier::TYPE_DISCOUNT);  // Only returning discount results
 ```
 
 ## Output
