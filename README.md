@@ -346,18 +346,26 @@ use Whitecube\Price\Price;
 $price = Price::EUR(600, 5)
     ->addDiscount(Discounts\FirstOrder::class)
     ->addTax(Taxes\Gambling::class)
-    ->addModifier(SomeCustomModifier::class);
+    ->addModifier('custom', SomeCustomModifier::class);
 ```
 
-These classes have to implement the [`Whitecube\Price\PriceAmendable`](https://github.com/whitecube/php-prices/blob/master/src/PriceAmendable.php) interface, which looks more or less like this:
+These classes have to implement the [`Whitecube\Price\PriceAmendable`](https://github.com/whitecube/php-prices/blob/master/src/PriceAmendable.php) interface, which then looks more or less like this:
 
 ```php
 use Brick\Money\Money;
+use Brick\Math\RoundingMode;
 use Whitecube\Price\Modifier;
 use Whitecube\Price\PriceAmendable;
 
 class SomeRandomModifier implements PriceAmendable
 {
+    /**
+     * The current modifier "type"
+     *
+     * @return string
+     */
+    protected $type;
+
     /**
      * Return the modifier type (tax, discount, other, ...)
      *
@@ -365,7 +373,20 @@ class SomeRandomModifier implements PriceAmendable
      */
     public function type() : string
     {
-        return Modifier::TYPE_TAX;
+        return $this->type;
+    }
+
+    /**
+     * Define the modifier type (tax, discount, other, ...)
+     *
+     * @param null|string $type
+     * @return $this
+     */
+    public function setType($type = null)
+    {
+        $this->type = $type;
+
+        return $this;
     }
 
     /**
@@ -379,12 +400,26 @@ class SomeRandomModifier implements PriceAmendable
     }
 
     /**
+     * Get the modifier attributes that should be saved in the
+     * price modification history.
+     *
+     * @return null|array
+     */
+    public function attributes() : ?array
+    {
+        return [
+            'subtitle' => 'Just because we don\'t like you today',
+            'color' => 'red',
+        ];
+    }
+
+    /**
      * Whether the modifier should be applied before the
      * VAT value has been computed.
      *
      * @return bool
      */
-    public function isBeforeVat() : bool
+    public function appliesAfterVat() : bool
     {
         return false;
     }
@@ -392,18 +427,23 @@ class SomeRandomModifier implements PriceAmendable
     /**
      * Apply the modifier on the given Money instance
      *
-     * @param \Brick\Money\Money $value
+     * @param \Brick\Money\Money $build
+     * @param float $units
+     * @param bool $perUnit
+     * @param null|\Brick\Money\Money $exclusive
+     * @param null|\Whitecube\Price\Vat $vat
      * @return null|\Brick\Money\Money
      */
-    public function apply(Money $value) : ?Money
+    public function apply(Money $build, $units, $perUnit, Money $exclusive = null, Vat $vat = null) : ?Money
     {
         if(date('j') > 1) {
             // Do not apply if it's not the first day of the month
             return null;
         }
 
-        // Add 25%
-        return $value->multiply(1.25);
+        // Otherwise add $2.00 per unit
+        $supplement = Money::of(2, 'EUR');
+        return $build->plus($perUnit ? $supplement : $supplement->multipliedBy($units, RoundingMode::HALF_UP));
     }
 }
 ```
@@ -415,7 +455,7 @@ use Brick\Money\Money;
 use Whitecube\Price\Price;
 
 $price = Price::EUR(600, 5)
-    ->addModifier(BetweenModifier::class, Money::EUR(-100), Money::EUR(100));
+    ->addModifier('lucky-or-not', BetweenModifier::class, Money::ofMinor(-100, 'EUR'), Money::ofMinor(100, 'EUR'));
 ```
 
 ```php
@@ -424,6 +464,9 @@ use Whitecube\Price\PriceAmendable;
 
 class BetweenModifier implements PriceAmendable
 {
+    protected $minimum;
+    protected $maximum;
+
     public function __construct(Money $minimum, Money $maximum)
     {
         $this->minimum = $minimum;
@@ -438,20 +481,33 @@ class BetweenModifier implements PriceAmendable
 
 Depending on the modifier's nature, VAT could be applied before or after its intervention on the final price. All modifiers can be configured to be executed during one of these phases.
 
-When adding discounts, taxes and simple custom modifiers, adding `true` as last argument indicates the modifier should apply before the VAT value is computed:
+By default modifiers are added before VAT is applied, meaning they will most probably also modify the VAT value. In order to prevent that, it is possible to add a modifier on top of the calculated VAT. Legally speaking this is honestly quite rare but why not:
 
 ```php
 use Whitecube\Price\Price;
 
-$price = Price::USD(800, 5)                                 // 5 x $8.00
-    ->addDiscount(-100, 'discount-key', true)               // 5 x $7.00 -> new VAT base
-    ->addTax(50, 'tax-key', true)                           // 5 x $7.50 -> new VAT base
-    ->addModifier(100, 'custom-key', 'custom-type', true);  // 5 x $8.50 -> new VAT base
+$price = Price::USD(800, 5)->addTax(function($tax) {
+    $tax->plus(200)->setPostVat();
+});
 ```
 
-In custom classes, this is handled by the `isBeforeVat` method.
+In custom classes, this is handled by the `appliesAfterVat` method.
 
-> ⚠️ **Warning**: The "isBeforeVAT" argument and methods will **alter the modifiers execution order**. Prices will first apply all the modifiers that should be executed before VAT (in order of appearance), followed by the remaining ones (also in order of appearance).
+> ⚠️ **Warning**: Applying modifiers after VAT will **alter the modifiers execution order**. Prices will first apply all the modifiers that should be executed before VAT (in order of appearance), then the VAT itself, followed by the remaining modifiers (also in order of appearance).
+
+Inclusive prices will contain all the modifiers (before and after VAT), but exclusive prices only contain the "before VAT" modifiers by default. If you consider the "after VAT" modifiers to be part of the exclusive price, you can always count them in by providing `$includeAfterVat = true` as second argument of the `exclusive()` method :
+
+```php
+use Whitecube\Price\Price;
+
+$price = Price::USD(800, 5)->setVat(10)->addTax(function($tax) {
+    $tax->plus(200)->setPostVat();
+});
+
+$price->exclusive();                // $40.00
+$price->exclusive(false, true);     // $50.00
+$price->inclusive();                // $54.00
+```
 
 ## Displaying modification details
 
