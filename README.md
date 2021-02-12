@@ -24,13 +24,13 @@ use Whitecube\Price\Price;
 $steak = Price::EUR(1850)   // Steak costs €18.50/kg
     ->setUnits(1.476)       // Customer had 1.476kg, excl. total is €27.31
     ->setVat(6)             // There is 6% VAT, incl. total is €28.95
-    ->addTax(50)            // There also is a €0.50/kg tax (before VAT), incl. total is €29,73
-    ->addDiscount(-100);    // We granted a €1.00/kg discount (before VAT), incl. total is €28,16
+    ->addTax(50)            // There also is a €0.50/kg tax (before VAT), incl. total is €29,74
+    ->addDiscount(-100);    // We granted a €1.00/kg discount (before VAT), incl. total is €28,17
 ```
 
 It is common practice and always best to work with amounts represented in **the smallest currency unit (minor values)** such as "cents".
 
-There are several convenient ways to obtain a `Price` instance :
+There are several convenient ways to obtain a `Price` instance:
 
 | Method                                           | Using major values                | Using minor values                  | Defining units                            |
 | :----------------------------------------------- | :-------------------------------- | :---------------------------------- | :---------------------------------------- |
@@ -55,7 +55,7 @@ $multiple = new Price($base, 4);                // 4 x $5.00
 
 ### From Brick/Money-like methods
 
-For convenience, it is also possible to use the shorthand Money factory methods :
+For convenience, it is also possible to use the shorthand Money factory methods:
 
 ```php
 use Whitecube\Price\Price;
@@ -81,7 +81,7 @@ $multiple = Price::USD(500, 4);                 // 4 x $5.00
 
 Using these static calls, all monetary values are considered minor values (e.g. cents).
 
-For a list of all available ISO 4217 currencies, take a look at [Brick/Money's is-currencies definition](https://github.com/brick/money/blob/master/data/iso-currencies.php).
+For a list of all available ISO 4217 currencies, take a look at [Brick/Money's iso-currencies definition](https://github.com/brick/money/blob/master/data/iso-currencies.php).
 
 ### From parsed string values
 
@@ -115,7 +115,7 @@ Getting the **currency** instance is just as easy:
 $currency = $price->currency();                 // Brick\Money\Currency
 ```
 
-The **total exclusive amount** (with all modifiers except without VAT):
+The **total exclusive amount** (with all modifiers except VAT):
 
 ```php
 $perUnit = $price->exclusive(true);             // Brick\Money\Money
@@ -196,7 +196,7 @@ $price->minus('2.00')                               // 2 x $3.00
 
 Please refer to [`brick/money`'s documentation](https://github.com/brick/money) for the full list of available features.
 
-> 💡 **Nice to know**: Most of the time, you'll be using modifiers to alter a price since its base value is meant to be somehow constant. For more information on modifiers, please take at the ["Adding modifiers" section](#adding-modifiers) below.
+> 💡 **Nice to know**: Whenever possible, you should prefer using modifiers to alter a price since its base value is meant to be constant. For more information on modifiers, please take at the ["Adding modifiers" section](#adding-modifiers) below.
 
 ## Setting units (quantities)
 
@@ -209,8 +209,8 @@ use Whitecube\Price\Price;
 use Brick\Money\Money;
 
 $price = new Price(Money::ofMinor(500, 'EUR'), 2);      // 2 units of €5.00 each
-$same = Price::EUR(500, 2);                             // idem
-$again = Price::parse('5.00', 'EUR', 2);                // idem
+$same = Price::EUR(500, 2);                             // same result
+$again = Price::parse('5.00', 'EUR', 2);                // same result
 ```
 
 ...or modify it later using the `setUnits()` method:
@@ -299,7 +299,7 @@ Most of the time, modifiers are more complex to define than simple "+" or "-" op
 
 #### Closure modifiers
 
-Instead of providing a monetary value to the modifiers, you can use a closure which will get a `Whitecube\Price\Modifier` instance. This object can then be used to perform some operations on the price value. Available operations are :
+Instead of providing a monetary value to the modifiers, you can use a closure which will get a `Whitecube\Price\Modifier` instance. This object can then be used to perform some operations on the price value. Available operations are:
 
 | Method       | Description                                                     |
 | :----------- | :-------------------------------------------------------------- |
@@ -334,7 +334,7 @@ Furthermore, using closure modifiers you can also add other useful configuration
 | `setKey(string)`       | `null`  | Define an identifier on the modifier. This can be anything and its main purpose is to make a modifier recognizable on display, for instance a translation key or a CSS class name. |
 | `setPostVat(bool)`     | `false` | Indicate whether the modifier should be applied before (`false`) or after (`true`) the VAT has been calculated. More information on this feature [below](#before-or-after-vat). |
 | `setPerUnit(bool)`     | `true`  | Indicate whether the `add()` and `subtract()` operations define "per-unit" amounts instead of providing a fixed amount that would be applied no matter the quantity. |
-| `setAttributes(array)` | `[]`    | Define as many extra modifier attributes as needed. This can be very usefull in order to display the applied modifiers in complex user interfaces. |
+| `setAttributes(array)` | `[]`    | Define as many extra modifier attributes as needed. This can be very useful in order to display the applied modifiers in complex user interfaces. |
 
 #### Modifier classes
 
@@ -495,7 +495,7 @@ In custom classes, this is handled by the `appliesAfterVat` method.
 
 > ⚠️ **Warning**: Applying modifiers after VAT will **alter the modifiers execution order**. Prices will first apply all the modifiers that should be executed before VAT (in order of appearance), then the VAT itself, followed by the remaining modifiers (also in order of appearance).
 
-Inclusive prices will contain all the modifiers (before and after VAT), but exclusive prices only contain the "before VAT" modifiers by default. If you consider the "after VAT" modifiers to be part of the exclusive price, you can always count them in by providing `$includeAfterVat = true` as second argument of the `exclusive()` method :
+Inclusive prices will contain all the modifiers (before and after VAT), but exclusive prices only contain the "before VAT" modifiers by default. If you consider the "after VAT" modifiers to be part of the exclusive price, you can always count them in by providing `$includeAfterVat = true` as second argument of the `exclusive()` method:
 
 ```php
 use Whitecube\Price\Price;
