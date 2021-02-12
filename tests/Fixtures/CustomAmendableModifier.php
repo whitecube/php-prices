@@ -3,6 +3,8 @@
 namespace Tests\Fixtures;
 
 use Brick\Money\Money;
+use Brick\Math\RoundingMode;
+use Whitecube\Price\Vat;
 use Whitecube\Price\PriceAmendable;
 
 class CustomAmendableModifier implements PriceAmendable
@@ -13,6 +15,13 @@ class CustomAmendableModifier implements PriceAmendable
      * @var \Brick\Money\Money
      */
     protected $tax;
+    
+    /**
+     * The "set" modifier type (tax, discount, other, ...)
+     *
+     * @return null|string
+     */
+    protected $type;
 
     /**
      * Create a new custom instance
@@ -32,7 +41,20 @@ class CustomAmendableModifier implements PriceAmendable
      */
     public function type() : string
     {
-        return 'custom';
+        return $this->type;
+    }
+
+    /**
+     * Define the modifier type (tax, discount, other, ...)
+     *
+     * @param null|string $type
+     * @return $this
+     */
+    public function setType($type = null)
+    {
+        $this->type = $type;
+
+        return $this;
     }
 
     /**
@@ -64,18 +86,7 @@ class CustomAmendableModifier implements PriceAmendable
      */
     public function appliesAfterVat() : bool
     {
-        return true;
-    }
-
-    /**
-     * Whether this modifier covers a single unit
-     * or the whole price regardless of its units.
-     *
-     * @return bool
-     */
-    public function appliesPerUnit() : bool
-    {
-        return true;
+        return false;
     }
 
     /**
@@ -90,6 +101,10 @@ class CustomAmendableModifier implements PriceAmendable
      */
     public function apply(Money $build, $units, $perUnit, Money $exclusive = null, Vat $vat = null) : ?Money
     {
-        return $build->plus($this->tax);
+        if($perUnit) {
+            return $build->plus($this->tax);
+        }
+
+        return $build->plus($this->tax->multipliedBy($units, RoundingMode::HALF_UP));
     }
 }

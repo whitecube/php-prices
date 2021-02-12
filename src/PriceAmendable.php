@@ -14,6 +14,14 @@ interface PriceAmendable
     public function type() : string;
 
     /**
+     * Define the modifier type (tax, discount, other, ...)
+     *
+     * @param null|string $type
+     * @return $this
+     */
+    public function setType($type = null);
+
+    /**
      * Return the modifier's identification key
      *
      * @return null|string
@@ -35,14 +43,6 @@ interface PriceAmendable
      * @return bool
      */
     public function appliesAfterVat() : bool;
-
-    /**
-     * Whether this modifier covers a single unit
-     * or the whole price regardless of its units.
-     *
-     * @return bool
-     */
-    public function appliesPerUnit() : bool;
 
     /**
      * Apply the modifier on the given Money instance

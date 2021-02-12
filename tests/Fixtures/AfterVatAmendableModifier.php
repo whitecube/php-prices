@@ -3,10 +3,11 @@
 namespace Tests\Fixtures;
 
 use Brick\Money\Money;
+use Brick\Math\RoundingMode;
 use Whitecube\Price\Vat;
 use Whitecube\Price\PriceAmendable;
 
-class AmendableModifier implements PriceAmendable
+class AfterVatAmendableModifier implements PriceAmendable
 {
     /**
      * The "set" modifier type (tax, discount, other, ...)
@@ -14,7 +15,7 @@ class AmendableModifier implements PriceAmendable
      * @return null|string
      */
     protected $type;
-    
+
     /**
      * Return the modifier type (tax, discount, other, ...)
      *
@@ -45,7 +46,7 @@ class AmendableModifier implements PriceAmendable
      */
     public function key() : ?string
     {
-        return 'foo-bar';
+        return 'after-vat';
     }
 
     /**
@@ -67,7 +68,7 @@ class AmendableModifier implements PriceAmendable
      */
     public function appliesAfterVat() : bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -82,6 +83,8 @@ class AmendableModifier implements PriceAmendable
      */
     public function apply(Money $build, $units, $perUnit, Money $exclusive = null, Vat $vat = null) : ?Money
     {
-        return $build->multipliedBy(1.25);
+        $tax = Money::ofMinor(100, 'EUR');
+
+        return $build->plus($perUnit ? $tax : $tax->multipliedBy($units, RoundingMode::HALF_UP));
     }
 }
