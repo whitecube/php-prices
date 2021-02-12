@@ -533,6 +533,25 @@ use Whitecube\Price\Modifier;
 $history = $price->modifications(false, Modifier::TYPE_DISCOUNT);  // Only returning discount results
 ```
 
+Most of the time you won't need all the data from the `modifications()` method, only the modification totals. These can be returned using the `discounts()`, `taxes()` and the generic `modifiers()` methods:
+
+
+```php
+use Whitecube\Price\Modifier;
+
+$totalDiscounts = $price->discounts();
+$totalDiscountsPerUnit = $price->discounts(true);
+
+$totalTaxes = $price->taxes();
+$totalTaxesPerUnit = $price->taxes(true);
+
+$totalAllModifiers = $price->modifiers();
+$totalAllModifiersPerUnit = $price->modifiers(true);
+
+$totalCustomTypeModifiers = $price->modifiers(false, 'custom');
+$totalCustomTypeModifiersPerUnit = $price->modifiers(true, 'custom');
+```
+
 ## Output
 
 By default, all handled monetary values are wrapped into a `Brick\Money\Money` object. This should be the only way to manipulate these values in order to [avoid decimal approximation errors](https://stackoverflow.com/questions/3730019/why-not-use-double-or-float-to-represent-currency).
