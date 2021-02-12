@@ -242,37 +242,62 @@ it('can verify the README intro example', function() {
     expect($price->inclusive()->__toString())->toBe('EUR 28.16');
 });
 
-// it('can return whole modification history', function() {
-//     $price = Price::EUR(500)
-//         ->addModifier(CustomAmendableModifier::class, Money::EUR(100))
-//         ->addModifier(AmendableModifier::class);
+it('can return whole modification history', function() {
+    $price = Price::EUR(500, 2)
+        ->addModifier('custom', AfterVatAmendableModifier::class)
+        ->addModifier('something', CustomAmendableModifier::class, Money::ofMinor(100, 'EUR'))
+        ->addModifier('custom', AmendableModifier::class);
 
-//     $history = $price->modifications();
+    $history = $price->modifications();
 
-//     assertTrue(is_array($history));
-//     assertEquals(2, count($history));
+    expect($history)->toBeArray();
+    expect(count($history))->toBe(3);
 
-//     assertEquals('foo-bar', $history[0]['key'] ?? null);
-//     assertTrue(Money::EUR(125)->equals($history[0]['amount']));
+    expect($history[0]['key'] ?? null)->toBe('bar-foo');
+    expect($history[0]['amount']->__toString())->toBe('EUR 2.00');
 
-//     assertEquals('bar-foo', $history[1]['key'] ?? null);
-//     assertTrue(Money::EUR(100)->equals($history[1]['amount']));
+    expect($history[1]['key'] ?? null)->toBe('foo-bar');
+    expect($history[1]['amount']->__toString())->toBe('EUR 3.00');
 
-//     assertTrue(Money::EUR(725)->equals($price->exclusive()));
-// });
+    expect($history[2]['key'] ?? null)->toBe('after-vat');
+    expect($history[2]['amount']->__toString())->toBe('EUR 2.00');
+});
 
-// it('can return filtered modification history', function() {
-//     $price = Price::EUR(500)
-//         ->addModifier(CustomAmendableModifier::class, Money::EUR(100))
-//         ->addModifier(AmendableModifier::class)
-//         ->addDiscount(-100);
+it('can return whole modification history with per-unit amounts', function() {
+    $price = Price::EUR(500, 2)
+        ->addModifier('custom', AfterVatAmendableModifier::class)
+        ->addModifier('something', CustomAmendableModifier::class, Money::ofMinor(100, 'EUR'))
+        ->addModifier('custom', AmendableModifier::class);
 
-//     $history = $price->modifications(Modifier::TYPE_DISCOUNT);
+    $history = $price->modifications(true);
 
-//     assertTrue(is_array($history));
-//     assertEquals(1, count($history));
+    expect($history)->toBeArray();
+    expect(count($history))->toBe(3);
 
-//     assertTrue(Money::EUR(-100)->equals($history[0]['amount']));
+    expect($history[0]['key'] ?? null)->toBe('bar-foo');
+    expect($history[0]['amount']->__toString())->toBe('EUR 1.00');
 
-//     assertTrue(Money::EUR(625)->equals($price->exclusive()));
-// });
+    expect($history[1]['key'] ?? null)->toBe('foo-bar');
+    expect($history[1]['amount']->__toString())->toBe('EUR 1.50');
+
+    expect($history[2]['key'] ?? null)->toBe('after-vat');
+    expect($history[2]['amount']->__toString())->toBe('EUR 1.00');
+});
+
+it('can return filtered modification history', function() {
+    $price = Price::EUR(500, 2)
+        ->addModifier('custom', AfterVatAmendableModifier::class)
+        ->addModifier('something', CustomAmendableModifier::class, Money::ofMinor(100, 'EUR'))
+        ->addModifier('custom', AmendableModifier::class);
+
+    $history = $price->modifications(false, 'custom');
+
+    expect($history)->toBeArray();
+    expect(count($history))->toBe(2);
+
+    expect($history[0]['key'] ?? null)->toBe('foo-bar');
+    expect($history[0]['amount']->__toString())->toBe('EUR 3.00');
+
+    expect($history[1]['key'] ?? null)->toBe('after-vat');
+    expect($history[1]['amount']->__toString())->toBe('EUR 2.00');
+});

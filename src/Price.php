@@ -210,40 +210,6 @@ class Price implements \JsonSerializable
     }
 
     /**
-     * Return the current modifications history
-     *
-     * @param bool $perUnit
-     * @param null|string $type
-     * @return array
-     */
-    public function modifications($perUnit = false, $type = null)
-    {
-        $result = $this->build()->inclusive($perUnit ? true : false);
-
-        if(is_null($type)) {
-            return array_values($result['modifications']);
-        }
-
-        return array_values(array_filter($result['modifications'], function($modification) use ($type) {
-            return $modification['type'] === $type;
-        }));
-    }
-
-    /**
-     * Get the defined modifiers from before or after the
-     * VAT value should have been applied
-     *
-     * @param bool $postVat
-     * @return array
-     */
-    public function getVatModifiers(bool $postVat)
-    {
-        return array_filter($this->modifiers, function($modifier) use ($postVat) {
-            return $modifier->appliesAfterVat() === $postVat;
-        });
-    }
-
-    /**
      * Reset the price calculator, forcing it to rebuild
      * next time a computed value is requested.
      *
