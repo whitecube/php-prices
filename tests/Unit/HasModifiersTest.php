@@ -301,3 +301,24 @@ it('can return filtered modification history', function() {
     expect($history[1]['key'] ?? null)->toBe('after-vat');
     expect($history[1]['amount']->__toString())->toBe('EUR 2.00');
 });
+
+it('can return modifications totals', function() {
+    $price = Price::EUR(500, 2)
+        ->addDiscount(-100)
+        ->addDiscount(-50)
+        ->addTax(25)
+        ->addTax(150)
+        ->addModifier('custom', AfterVatAmendableModifier::class)
+        ->addModifier('something', CustomAmendableModifier::class, Money::ofMinor(100, 'EUR'))
+        ->addModifier('custom', AmendableModifier::class);
+
+    expect($price->discounts()->__toString())->toBe('EUR -3.00');
+    expect($price->discounts(true)->__toString())->toBe('EUR -1.50');
+
+    expect($price->taxes()->__toString())->toBe('EUR 3.50');
+    expect($price->taxes(true)->__toString())->toBe('EUR 1.75');
+
+    expect($price->modifiers()->__toString())->toBe('EUR 7.63');
+    expect($price->modifiers(true)->__toString())->toBe('EUR 3.81');
+    expect($price->modifiers(false, 'custom')->__toString())->toBe('EUR 5.13');
+});

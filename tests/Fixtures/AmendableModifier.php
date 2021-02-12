@@ -3,6 +3,7 @@
 namespace Tests\Fixtures;
 
 use Brick\Money\Money;
+use Brick\Math\RoundingMode;
 use Whitecube\Price\Vat;
 use Whitecube\Price\PriceAmendable;
 
@@ -82,6 +83,6 @@ class AmendableModifier implements PriceAmendable
      */
     public function apply(Money $build, $units, $perUnit, Money $exclusive = null, Vat $vat = null) : ?Money
     {
-        return $build->multipliedBy(1.25);
+        return $build->multipliedBy(1.25, RoundingMode::HALF_UP);
     }
 }

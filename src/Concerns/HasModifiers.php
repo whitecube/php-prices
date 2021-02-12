@@ -95,6 +95,20 @@ trait HasModifiers
     }
 
     /**
+     * Get the defined modifiers from before or after the
+     * VAT value should have been applied
+     *
+     * @param bool $postVat
+     * @return array
+     */
+    public function getVatModifiers(bool $postVat)
+    {
+        return array_filter($this->modifiers, function($modifier) use ($postVat) {
+            return $modifier->appliesAfterVat() === $postVat;
+        });
+    }
+
+    /**
      * Return the current modifications history
      *
      * @param bool $perUnit
@@ -115,16 +129,42 @@ trait HasModifiers
     }
 
     /**
-     * Get the defined modifiers from before or after the
-     * VAT value should have been applied
+     * Return the modification total for all discounts
      *
-     * @param bool $postVat
-     * @return array
+     * @param bool $perUnit
+     * @return \Brick\Money\Money
      */
-    public function getVatModifiers(bool $postVat)
+    public function discounts($perUnit = false)
     {
-        return array_filter($this->modifiers, function($modifier) use ($postVat) {
-            return $modifier->appliesAfterVat() === $postVat;
-        });
+        return $this->modifiers($perUnit, Modifier::TYPE_DISCOUNT);
+    }
+
+    /**
+     * Return the modification total for all taxes
+     *
+     * @param bool $perUnit
+     * @return \Brick\Money\Money
+     */
+    public function taxes($perUnit = false)
+    {
+        return $this->modifiers($perUnit, Modifier::TYPE_TAX);
+    }
+
+    /**
+     * Return the modification total for a given type
+     *
+     * @param bool $perUnit
+     * @param null|string $type
+     * @return \Brick\Money\Money
+     */
+    public function modifiers($perUnit = false, $type = null)
+    {
+        $amount = Money::zero($this->currency());
+
+        foreach ($this->modifications($perUnit, $type) as $modification) {
+            $amount = $amount->plus($modification['amount']);
+        }
+
+        return $amount;
     }
 }
