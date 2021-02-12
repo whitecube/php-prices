@@ -220,6 +220,28 @@ it('can apply modifiers before computing VAT', function() {
     expect($price->inclusive()->__toString())->toBe('EUR 18.50');
 });
 
+it('can verify the README intro example', function() {
+    $price = Price::EUR(1850);
+
+    expect($price->inclusive()->__toString())->toBe('EUR 18.50');
+
+    $price->setUnits(1.476);
+
+    expect($price->inclusive()->__toString())->toBe('EUR 27.31');
+
+    $price->setVat(6);
+
+    expect($price->inclusive()->__toString())->toBe('EUR 28.95');
+
+    $price->addTax(50);
+
+    expect($price->inclusive()->__toString())->toBe('EUR 29.73');
+
+    $price->addDiscount(-100);
+
+    expect($price->inclusive()->__toString())->toBe('EUR 28.16');
+});
+
 // it('can return whole modification history', function() {
 //     $price = Price::EUR(500)
 //         ->addModifier(CustomAmendableModifier::class, Money::EUR(100))
