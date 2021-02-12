@@ -487,7 +487,7 @@ By default modifiers are added before VAT is applied, meaning they will most pro
 use Whitecube\Price\Price;
 
 $price = Price::USD(800, 5)->addTax(function($tax) {
-    $tax->plus(200)->setPostVat();
+    $tax->add(200)->setPostVat();
 });
 ```
 
@@ -501,7 +501,7 @@ Inclusive prices will contain all the modifiers (before and after VAT), but excl
 use Whitecube\Price\Price;
 
 $price = Price::USD(800, 5)->setVat(10)->addTax(function($tax) {
-    $tax->plus(200)->setPostVat();
+    $tax->add(200)->setPostVat();
 });
 
 $price->exclusive();                // $40.00
