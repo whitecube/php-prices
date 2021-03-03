@@ -143,7 +143,7 @@ class Calculator
         $vat = $this->price->vat();
 
         $result = [
-            'amount' => Money::zero($this->price->currency()),
+            'amount' => Money::zero($this->price->currency(), $this->price->context()),
             'modifications' => [],
         ];
 
@@ -163,7 +163,7 @@ class Calculator
         $vat = $this->price->vat(true);
 
         if(! $vat) {
-            return Money::zero($this->price->currency());
+            return Money::zero($this->price->currency(), $this->price->context());
         }
 
         $exclusive = $this->exclusiveBeforeVat($perUnit)['amount'];
