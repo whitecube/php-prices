@@ -127,6 +127,16 @@ class Price implements \JsonSerializable
     }
 
     /**
+     * Return the price's underlying context instance
+     *
+     * @return \Brick\Money\Context
+     */
+    public function context()
+    {
+        return $this->base->getContext();
+    }
+
+    /**
      * Return the price's base value
      *
      * @param bool $perUnit

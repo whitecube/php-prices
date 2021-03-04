@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use Brick\Money\Context;
 use Brick\Money\Money;
 use Brick\Money\Currency;
 use Whitecube\Price\Price;
@@ -19,4 +20,12 @@ it('can access the currency object', function() {
 
     expect($currency)->toBeInstanceOf(Currency::class);
     expect($currency->getCurrencyCode())->toBe('EUR');
+});
+
+it('can access the context object', function() {
+    $price = Price::EUR(100);
+
+    $context = $price->context();
+
+    expect($context)->toBeInstanceOf(Context::class);
 });
