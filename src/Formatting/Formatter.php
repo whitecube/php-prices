@@ -76,7 +76,7 @@ class Formatter
     protected function format(Money $value, string $locale) : string
     {
         $currency = $value->getCurrency()->getCurrencyCode();
-        $value = $value->getAmount();
+        $value = $value->getAmount()->toFloat();
 
         $fmt = new NumberFormatter($locale, NumberFormatter::CURRENCY);
 

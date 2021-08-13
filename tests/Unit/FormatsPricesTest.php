@@ -8,7 +8,7 @@ use Whitecube\Price\Price;
 it('formats Price instances as inclusive localized strings using application locale', function() {
     setlocale(LC_ALL, 'en_US');
 
-    $price = Price::EUR(65550, 8)->setVat(21);
+    $price = Price::USD(65550, 8)->setVat(21);
 
     expect(Price::format($price))->toBe('$6,345.24');
 });
@@ -16,7 +16,7 @@ it('formats Price instances as inclusive localized strings using application loc
 it('formats Brick\\Money instances as localized strings using application locale', function() {
     setlocale(LC_ALL, 'en_US');
 
-    $price = Price::EUR(65550, 8)->setVat(21);
+    $price = Price::USD(65550, 8)->setVat(21);
 
     expect(Price::format($price->exclusive()))->toBe('$5,244.00');
 });
@@ -24,7 +24,7 @@ it('formats Brick\\Money instances as localized strings using application locale
 it('formats Vat instances as localized strings using application locale', function() {
     setlocale(LC_ALL, 'en_US');
 
-    $price = Price::EUR(65550, 8)->setVat(21);
+    $price = Price::USD(65550, 8)->setVat(21);
 
     expect(Price::format($price->vat()))->toBe('$1,101.24');
 });
