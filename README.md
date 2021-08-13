@@ -599,7 +599,7 @@ For even more flexibility, it is possible to define multiple named formatters an
 ```php
 use Whitecube\Price\Price;
 
-setlocale(LC_ALL, 'nl_BE');
+setlocale(LC_ALL, 'en_US');
 
 Price::formatUsing(fn($price, $locale = null) => $price->exclusive()->getMinorAmount()->toInt())
     ->name('rawExclusiveCents');
@@ -621,15 +621,17 @@ Please note that extra parameters can be forwarded to your custom formatters:
 ```php
 use Whitecube\Price\Price;
 
-setlocale(LC_ALL, 'fr_BE');
+setlocale(LC_ALL, 'en_US');
 
-Price::formatUsing(function($price, $space = '&nbsp;', $locale = null) {
-    return str_replace(' ', $space, Price::format($price, $locale));
-})->name('unbreakable');
+Price::formatUsing(function($price, $max, $locale = null) {
+    return ($price->compareTo($max) > 0)
+        ? Price::format($max, $locale)
+        : Price::format($price, $locale);
+})->name('max');
 
 $price = Price::EUR(100000, 2)->setVat(21);
 
-echo Price::formatUnbreakable($price, '_');        // 2_420,00_€
+echo Price::formatMax($price, Money::ofMinor(180000, 'EUR'), 'fr_BE');    // 1 800,00 €
 ```
 
 ### JSON
