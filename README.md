@@ -559,7 +559,7 @@ There are a lot of different ways to format a price for display and your applica
 ```php
 use Whitecube\Price\Price;
 
-setlocale('en_US');
+setlocale(LC_ALL, 'en_US');
 
 $price = Price::USD(65550, 8)->setVat(21);
 
@@ -573,7 +573,7 @@ For formatting in another language, provide the desired locale name as second pa
 ```php
 use Whitecube\Price\Price;
 
-setlocale('en_US');
+setlocale(LC_ALL, 'en_US');
 
 $price = Price::USD(65550, 8)->setVat(21);
 
@@ -599,7 +599,7 @@ For even more flexibility, it is possible to define multiple named formatters an
 ```php
 use Whitecube\Price\Price;
 
-setlocale('nl_BE');
+setlocale(LC_ALL, 'nl_BE');
 
 Price::formatUsing(fn($price, $locale = null) => $price->exclusive()->getMinorAmount()->toInt())
     ->name('rawExclusiveCents');
@@ -621,7 +621,7 @@ Please note that extra parameters can be forwarded to your custom formatters:
 ```php
 use Whitecube\Price\Price;
 
-setlocale('fr_BE');
+setlocale(LC_ALL, 'fr_BE');
 
 Price::formatUsing(function($price, $space = '&nbsp;', $locale = null) {
     return str_replace(' ', $space, Price::format($price, $locale));

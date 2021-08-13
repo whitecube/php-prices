@@ -6,7 +6,7 @@ use Brick\Money\Money;
 use Whitecube\Price\Price;
 
 it('formats Price instances as inclusive localized strings using application locale', function() {
-    setlocale('en_US');
+    setlocale(LC_ALL, 'en_US');
 
     $price = Price::EUR(65550, 8)->setVat(21);
 
@@ -14,7 +14,7 @@ it('formats Price instances as inclusive localized strings using application loc
 });
 
 it('formats Brick\\Money instances as localized strings using application locale', function() {
-    setlocale('en_US');
+    setlocale(LC_ALL, 'en_US');
 
     $price = Price::EUR(65550, 8)->setVat(21);
 
@@ -22,7 +22,7 @@ it('formats Brick\\Money instances as localized strings using application locale
 });
 
 it('formats Vat instances as localized strings using application locale', function() {
-    setlocale('en_US');
+    setlocale(LC_ALL, 'en_US');
 
     $price = Price::EUR(65550, 8)->setVat(21);
 
@@ -30,7 +30,7 @@ it('formats Vat instances as localized strings using application locale', functi
 });
 
 it('formats monetary values using provided locale', function() {
-    setlocale('en_US');
+    setlocale(LC_ALL, 'en_US');
 
     $price = Price::EUR(65550, 8)->setVat(21);
 
@@ -40,7 +40,7 @@ it('formats monetary values using provided locale', function() {
 });
 
 it('formats monetary values using a previously defined custom formatted closure', function() {
-    setlocale('en_US');
+    setlocale(LC_ALL, 'en_US');
 
     Price::formatUsing(fn($price, $locale = null) => $price->exclusive()->getMinorAmount()->toInt());
 
@@ -50,7 +50,7 @@ it('formats monetary values using a previously defined custom formatted closure'
 });
 
 it('formats monetary values using the default formatter despite of the previously defined custom formatted closure', function() {
-    setlocale('en_US');
+    setlocale(LC_ALL, 'en_US');
     
     Price::formatUsing(fn($price, $locale = null) => $price->exclusive()->getMinorAmount()->toInt());
 
@@ -60,7 +60,7 @@ it('formats monetary values using the default formatter despite of the previousl
 });
 
 it('formats monetary values using one of the previously defined custom named formatted closures', function() {
-    setlocale('nl_BE');
+    setlocale(LC_ALL, 'nl_BE');
 
     Price::formatUsing(fn($price, $locale = null) => $price->exclusive()->getMinorAmount()->toInt())
         ->name('rawExclusiveCents');
@@ -76,7 +76,7 @@ it('formats monetary values using one of the previously defined custom named for
 });
 
 it('formats monetary values using forwarded method parameters on a previously defined custom formatted closure', function() {
-    setlocale('fr_BE');
+    setlocale(LC_ALL, 'fr_BE');
 
     Price::formatUsing(function($price, $space = '&nbsp;', $locale = null) {
         return str_replace(' ', $space, Price::format($price, $locale));
