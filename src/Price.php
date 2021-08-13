@@ -10,6 +10,7 @@ class Price implements \JsonSerializable
 {
     use Concerns\OperatesOnBase;
     use Concerns\ParsesPrices;
+    use Concerns\FormatsPrices;
     use Concerns\HasUnits;
     use Concerns\HasVat;
     use Concerns\HasModifiers;
