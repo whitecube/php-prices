@@ -91,4 +91,14 @@ trait FormatsPrices
     {
         return new Formatter();
     }
+
+    /**
+     * Unsets all the previously defined custom formatters.
+     *
+     * @return void
+     */
+    static public function forgetAllFormatters()
+    {
+        static::$formatters = [];
+    }
 }
