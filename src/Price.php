@@ -10,6 +10,7 @@ class Price implements \JsonSerializable
 {
     use Concerns\OperatesOnBase;
     use Concerns\ParsesPrices;
+    use Concerns\FormatsPrices;
     use Concerns\HasUnits;
     use Concerns\HasVat;
     use Concerns\HasModifiers;
@@ -73,7 +74,7 @@ class Price implements \JsonSerializable
     }
 
     /**
-     * Convenience Money methods for creating Price objects
+     * Convenience Money methods for creating Price objects and value formatting
      *
      * @param string $method
      * @param array  $arguments
@@ -81,6 +82,10 @@ class Price implements \JsonSerializable
      */
     public static function __callStatic($method, $arguments)
     {
+        if(strpos($method, 'format') === 0) {
+            return static::callFormatter(substr($method, 6), ...$arguments);
+        }
+
         try {
             $currency = ISOCurrencyProvider::getInstance()->getCurrency(strtoupper($method));
             $base = Money::ofMinor($arguments[0], $currency);
