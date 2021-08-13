@@ -561,11 +561,11 @@ use Whitecube\Price\Price;
 
 setlocale('en_US');
 
-$price = Price::EUR(600, 8)->setVat(21);
+$price = Price::USD(65550, 8)->setVat(21);
 
-echo Price::format($price);                         // TODO : 58.08
-echo Price::format($price->exclusive());            // TODO : 48.00
-echo Price::format($price->vat());                  // TODO : 10.08
+echo Price::format($price);                         // $6,345.24
+echo Price::format($price->exclusive());            // $5,244.00
+echo Price::format($price->vat());                  // $1,101.24
 ```
 
 For formatting in another language, provide the desired locale name as second parameter:
@@ -575,11 +575,11 @@ use Whitecube\Price\Price;
 
 setlocale('en_US');
 
-$price = Price::EUR(600, 8)->setVat(21);
+$price = Price::USD(65550, 8)->setVat(21);
 
-echo Price::format($price, 'de_DE');                // TODO : 58.08
-echo Price::format($price->exclusive(), 'fr_BE');   // TODO : 48.00
-echo Price::format($price->vat()), 'en_GB');        // TODO : 10.08
+echo Price::format($price, 'de_DE');                // 6.345,24 €
+echo Price::format($price->exclusive(), 'fr_BE');   // 5 244,00 €
+echo Price::format($price->vat(), 'en_GB');         // €1,101.24
 ```
 
 For advanced custom use cases, use the `Price::formatUsing()` method to provide a custom formatter function:
@@ -601,19 +601,19 @@ use Whitecube\Price\Price;
 
 setlocale('nl_BE');
 
-Price::formatUsing(fn($price) => $price->exclusive()->getMinorAmount()->toInt())
+Price::formatUsing(fn($price, $locale = null) => $price->exclusive()->getMinorAmount()->toInt())
     ->name('rawExclusiveCents');
 
-Price::formatUsing(fn($price) => Price::formatDefault($price->inclusive()->multipliedBy(-1)))
+Price::formatUsing(fn($price, $locale = null) => Price::formatDefault($price->inclusive()->multipliedBy(-1), $locale))
     ->name('inverted');
 
 $price = Price::EUR(600, 8)->setVat(21);
 
 echo Price::formatRawExclusiveCents($price);        // 4800
-echo Price::formatInverted($price);                 // TODO : -58.08
+echo Price::formatInverted($price);                 // -58,08 €
 
 // When using named formatters the default formatter stays untouched
-echo Price::format($price);                         // TODO : 58.08
+echo Price::format($price);                         // 58,08 €
 ```
 
 Please note that extra parameters can be forwarded to your custom formatters:
@@ -621,15 +621,15 @@ Please note that extra parameters can be forwarded to your custom formatters:
 ```php
 use Whitecube\Price\Price;
 
-setlocale('en_US');
+setlocale('fr_BE');
 
 Price::formatUsing(function($price, $space = '&nbsp;', $locale = null) {
     return str_replace(' ', $space, Price::format($price, $locale));
 })->name('unbreakable');
 
-$price = Price::USD(100000, 2)->setVat(21);
+$price = Price::EUR(100000, 2)->setVat(21);
 
-echo Price::formatUnbreakable($price, '_');        // TODO : $_1_000.00
+echo Price::formatUnbreakable($price, '_');        // 2_420,00_€
 ```
 
 ### JSON
