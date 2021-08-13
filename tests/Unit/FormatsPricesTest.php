@@ -46,7 +46,7 @@ it('formats monetary values using a previously defined custom formatted closure'
 
     $price = Price::EUR(600, 8)->setVat(21);
 
-    expect(Price::format($price))->toBe(4800);
+    expect(Price::format($price))->toBe('4800');
 });
 
 it('formats monetary values using the default formatter despite of the previously defined custom formatted closure', function() {
