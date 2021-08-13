@@ -70,9 +70,9 @@ it('formats monetary values using one of the previously defined custom named for
 
     $price = Price::EUR(600, 8)->setVat(21);
 
-    expect(Price::formatRawExclusiveCents($price))->toBe(4800);
-    expect(Price::formatInverted($price))->toBe('-58,08 €');
-    expect(Price::format($price))->toBe('58,08 €');
+    expect(Price::formatRawExclusiveCents($price))->toBe('4800');
+    expect(Price::formatInverted($price))->toBe('-€58.08');
+    expect(Price::format($price))->toBe('€58.08');
 });
 
 it('formats monetary values using forwarded method parameters on a previously defined custom formatted closure', function() {

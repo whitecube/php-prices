@@ -610,10 +610,10 @@ Price::formatUsing(fn($price, $locale = null) => Price::formatDefault($price->in
 $price = Price::EUR(600, 8)->setVat(21);
 
 echo Price::formatRawExclusiveCents($price);        // 4800
-echo Price::formatInverted($price);                 // -58,08 €
+echo Price::formatInverted($price);                 // -€58.08
 
 // When using named formatters the default formatter stays untouched
-echo Price::format($price);                         // 58,08 €
+echo Price::format($price);                         // €58.08
 ```
 
 Please note that extra parameters can be forwarded to your custom formatters:
