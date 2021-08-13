@@ -54,7 +54,7 @@ it('formats monetary values using the default formatter despite of the previousl
     
     Price::formatUsing(fn($price, $locale = null) => $price->exclusive()->getMinorAmount()->toInt());
 
-    $price = Price::EUR(600, 8)->setVat(21);
+    $price = Price::USD(600, 8)->setVat(21);
 
     expect(Price::formatDefault($price))->toBe('$58.08');
 });

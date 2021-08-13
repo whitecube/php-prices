@@ -47,7 +47,7 @@ trait FormatsPrices
      */
     static public function formatDefault($value, $locale = null)
     {
-        return static::getDefaultFormatter()->call($arguments);
+        return static::getDefaultFormatter()->call([$value, $locale]);
     }
 
     /**
