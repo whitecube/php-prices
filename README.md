@@ -520,8 +520,6 @@ $history = $price->modifications(); // Array containing chronological modifier r
 Each history item contains the amount it applied to the total price. If you want to query these modifications with their "per-unit" value:
 
 ```php
-use Whitecube\Price\Modifier;
-
 $perUnitHistory = $price->modifications(true);
 ```
 
@@ -537,8 +535,6 @@ Most of the time you won't need all the data from the `modifications()` method, 
 
 
 ```php
-use Whitecube\Price\Modifier;
-
 $totalDiscounts = $price->discounts();
 $totalDiscountsPerUnit = $price->discounts(true);
 
@@ -555,6 +551,88 @@ $totalCustomTypeModifiersPerUnit = $price->modifiers(true, 'custom');
 ## Output
 
 By default, all handled monetary values are wrapped into a `Brick\Money\Money` object. This should be the only way to manipulate these values in order to [avoid decimal approximation errors](https://stackoverflow.com/questions/3730019/why-not-use-double-or-float-to-represent-currency).
+
+### Displaying prices as strings
+
+There are a lot of different ways to format a price for display and your application most certainly has its own needs that have to be respected. While it is of course possible to handle price formatting directly from the returned `Brick\Money\Money` objects, we also included a convenient Price formatter. Please note that its default behavior is based on [PHP's `NumberFormatter`](https://www.php.net/manual/en/numberformatter.formatcurrency.php) (by default it uses the current locale, see [`setlocale`](https://www.php.net/manual/en/function.setlocale.php) for more information).
+
+```php
+use Whitecube\Price\Price;
+
+setlocale(LC_ALL, 'en_US');
+
+$price = Price::USD(65550, 8)->setVat(21);
+
+echo Price::format($price);                         // $6,345.24
+echo Price::format($price->exclusive());            // $5,244.00
+echo Price::format($price->vat());                  // $1,101.24
+```
+
+For formatting in another language, provide the desired locale name as second parameter:
+
+```php
+use Whitecube\Price\Price;
+
+setlocale(LC_ALL, 'en_US');
+
+$price = Price::USD(65550, 8)->setVat(21);
+
+echo Price::format($price, 'de_DE');                // 6.345,24 €
+echo Price::format($price->exclusive(), 'fr_BE');   // 5 244,00 €
+echo Price::format($price->vat(), 'en_GB');         // €1,101.24
+```
+
+For advanced custom use cases, use the `Price::formatUsing()` method to provide a custom formatter function:
+
+```php
+use Whitecube\Price\Price;
+
+Price::formatUsing(fn($price, $locale = null) => $price->exclusive()->getMinorAmount()->toInt());
+
+$price = Price::EUR(600, 8)->setVat(21);
+
+echo Price::format($price);      // 4800
+```
+
+For even more flexibility, it is possible to define multiple named formatters and call them using their own dynamic static method:
+
+```php
+use Whitecube\Price\Price;
+
+setlocale(LC_ALL, 'en_US');
+
+Price::formatUsing(fn($price, $locale = null) => $price->exclusive()->getMinorAmount()->toInt())
+    ->name('rawExclusiveCents');
+
+Price::formatUsing(fn($price, $locale = null) => Price::formatDefault($price->inclusive()->multipliedBy(-1), $locale))
+    ->name('inverted');
+
+$price = Price::EUR(600, 8)->setVat(21);
+
+echo Price::formatRawExclusiveCents($price);        // 4800
+echo Price::formatInverted($price);                 // -€58.08
+
+// When using named formatters the default formatter stays untouched
+echo Price::format($price);                         // €58.08
+```
+
+Please note that extra parameters can be forwarded to your custom formatters:
+
+```php
+use Whitecube\Price\Price;
+
+setlocale(LC_ALL, 'en_US');
+
+Price::formatUsing(function($price, $max, $locale = null) {
+    return ($price->compareTo($max) > 0)
+        ? Price::format($max, $locale)
+        : Price::format($price, $locale);
+})->name('max');
+
+$price = Price::EUR(100000, 2)->setVat(21);
+
+echo Price::formatMax($price, Money::ofMinor(180000, 'EUR'), 'fr_BE');    // 1 800,00 €
+```
 
 ### JSON
 
