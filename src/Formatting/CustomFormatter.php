@@ -24,7 +24,7 @@ class CustomFormatter extends Formatter
      * @param callable $closure
      * @return void
      */
-    public function __construct(callable $closure)
+    public function __construct(callable $closure = null)
     {
         $this->closure = $closure;
 

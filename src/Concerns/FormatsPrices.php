@@ -54,13 +54,20 @@ trait FormatsPrices
      * Formats the given monetary value using the package's default formatter.
      * This static method is hardcoded in order to prevent overwriting.
      *
-     * @param string $value
-     * @param null|string $locale
+     * @param mixed $formatter
      * @return \Whitecube\Price\CustomFormatter
      */
-    static public function formatUsing(callable $closure) : CustomFormatter
+    static public function formatUsing($formatter) : CustomFormatter
     {
-        $instance = new CustomFormatter($closure);
+        if(is_string($formatter) && is_a($formatter, CustomFormatter::class, true)) {
+            $instance = new $formatter;
+        } elseif (is_a($formatter, CustomFormatter::class)) {
+            $instance = $formatter;
+        } elseif (is_callable($formatter)) {
+            $instance = new CustomFormatter($formatter);
+        } else {
+            throw new \InvalidArgumentException('Price formatter should be callable or extend "\\Whitecube\\Price\\CustomFormatter". "' . gettype($formatter) . '" provided.');
+        }
 
         static::$formatters[] = $instance;
 

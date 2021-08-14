@@ -28,19 +28,34 @@ class Formatter
      */
     public function call(array $arguments) : ?string
     {
-        [$value, $locale] = (count($arguments) > 2)
-            ? array_slice($arguments, 0, 2)
-            : array_pad($arguments, 2, null);
+        [$value, $locale] = $this->getMoneyAndLocale($arguments);
 
-        if(! is_a($value = $this->toMoney($value), Money::class)) {
+        if(! is_a($value, Money::class)) {
             return null;
         }
 
-        if(! $locale) {
+        return $this->format($value, $locale);
+    }
+
+    /**
+     * Extract the Money and locale arguments from the provided arguments array.
+     *
+     * @param array $arguments
+     * @param int $moneyIndex
+     * @param int $localeIndex
+     * @return array
+     */
+    protected function getMoneyAndLocale(array $arguments, int $moneyIndex = 0, int $localeIndex = 1) : array
+    {
+        if($money = $arguments[$moneyIndex] ?? null) {
+            $money = $this->toMoney($money);
+        }
+
+        if(! ($locale = $arguments[$localeIndex] ?? null)) {
             $locale = locale_get_default();
         }
 
-        return $this->format($value, $locale);
+        return [$money, $locale];
     }
 
     /**

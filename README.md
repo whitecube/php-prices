@@ -594,6 +594,18 @@ $price = Price::EUR(600, 8)->setVat(21);
 echo Price::format($price);      // 4800
 ```
 
+The `Price::formatUsing()` method accepts a closure function, a Formatter class name or a Formatter instance. The two last options should both extend `\Whitecube\Price\Formatting\CustomFormatter`:
+
+```php
+use Whitecube\Price\Price;
+
+Price::formatUsing(fn($price, $locale = null) => /* Convert $price to a string for $locale */);
+// or
+Price::formatUsing(\App\Formatters\MyPriceFormatter::class);
+// or
+Price::formatUsing(new \App\Formatters\MyPriceFormatter($some, $dependencies));
+```
+
 For even more flexibility, it is possible to define multiple named formatters and call them using their own dynamic static method:
 
 ```php
@@ -604,7 +616,7 @@ setlocale(LC_ALL, 'en_US');
 Price::formatUsing(fn($price, $locale = null) => $price->exclusive()->getMinorAmount()->toInt())
     ->name('rawExclusiveCents');
 
-Price::formatUsing(fn($price, $locale = null) => Price::formatDefault($price->inclusive()->multipliedBy(-1), $locale))
+Price::formatUsing(\App\Formatters\MyInvertedPriceFormatter::class)
     ->name('inverted');
 
 $price = Price::EUR(600, 8)->setVat(21);
