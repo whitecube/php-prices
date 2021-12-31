@@ -2,7 +2,6 @@
 
 namespace Tests\Unit;
 
-use Brick\Money\Money;
 use Whitecube\Price\Price;
 
 it('parses decimal (point) currency values', function() {
@@ -36,4 +35,9 @@ it('parses uncommon decimal values', function() {
     expect(Price::parse('5.008', 'EUR')->__toString())->toBe('EUR 5.01');
     expect(Price::parse('foo', 'EUR')->__toString())->toBe('EUR 0.00');
     expect(Price::parse('bar 6.50', 'EUR')->__toString())->toBe('EUR 6.50');
+});
+
+it('parses values with both narrow non-breaking and regular spaces', function() {
+    expect(Price::parse('1 234,56', 'EUR')->__toString())->toBe('EUR 1234.56');
+    expect(Price::parse('1 234,56', 'EUR')->__toString())->toBe('EUR 1234.56');
 });

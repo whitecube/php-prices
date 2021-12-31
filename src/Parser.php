@@ -39,7 +39,7 @@ class Parser
      */
     public function extractValue()
     {
-        $string = str_replace([',', ' '], ['.', ''], $this->original);
+        $string = str_replace([',', ' ', ' '], ['.', '', ''], $this->original);
 
         preg_match('/^[^-\.\d]*(\-?\d+(?:\.\d+)?)[^\d]*$/', $string, $matches);
 
