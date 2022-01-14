@@ -202,7 +202,7 @@ class Price implements \JsonSerializable
         $parts = floor($this->units);
 
         $remainder = $amount->multipliedBy($this->units - $parts, RoundingMode::FLOOR);
-        
+
         $allocated = $amount->minus($remainder);
 
         return Money::min(...$allocated->split($parts));
@@ -239,7 +239,7 @@ class Price implements \JsonSerializable
      * Launch the total price calculator only if
      * it does not yet exist or has been invalidated.
      *
-     * @return void
+     * @return \Whitecube\Price\Calculator
      */
     public function build()
     {
@@ -253,7 +253,7 @@ class Price implements \JsonSerializable
     }
 
     /**
-     * Convert this price object into a readable 
+     * Convert this price object into a readable
      * total & inclusive money string
      *
      * @return string
@@ -303,7 +303,7 @@ class Price implements \JsonSerializable
         }
 
         $base = Money::ofMinor($value['base'], $value['currency']);
-        
+
         return (new static($base, $value['units']))
             ->setVat($value['vat']);
     }
