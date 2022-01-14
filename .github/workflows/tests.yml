@@ -26,6 +26,9 @@ jobs:
 
             -   name: Install dependencies
                 run: composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction
+            
+            -   name: List installed locales
+                run: locale -a
 
             -   name: Execute tests
                 run: ./vendor/bin/pest
