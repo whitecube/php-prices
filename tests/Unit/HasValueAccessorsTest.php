@@ -3,7 +3,6 @@
 namespace Tests\Unit;
 
 use Brick\Money\Context;
-use Brick\Money\Money;
 use Brick\Money\Currency;
 use Whitecube\Price\Price;
 
@@ -28,4 +27,28 @@ it('can access the context object', function() {
     $context = $price->context();
 
     expect($context)->toBeInstanceOf(Context::class);
+});
+
+it('can access the base minor value', function() {
+    $price = Price::EUR(100);
+
+    $minor = $price->toMinor();
+
+    expect($minor)->toBe(100);
+});
+
+it('can access the vat-inclusive minor value', function() {
+    $price = Price::EUR(100)->setVat(21);
+
+    $minor = $price->toMinor('inclusive');
+
+    expect($minor)->toBe(121);
+});
+
+it('can access the vat-exclusive minor value', function() {
+    $price = Price::EUR(100)->setVat(21);
+
+    $minor = $price->toMinor('exclusive');
+
+    expect($minor)->toBe(100);
 });

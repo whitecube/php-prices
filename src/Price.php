@@ -188,6 +188,25 @@ class Price implements \JsonSerializable
     }
 
     /**
+     * Shorthand to easily get the underlying minor amount (as an integer)
+     *
+     * @param null|string $version
+     * @return int
+     */
+    public function toMinor($version = null)
+    {
+        if ($version === 'inclusive') {
+            return $this->inclusive()->getMinorAmount()->toInt();
+        }
+
+        if ($version === 'exclusive') {
+            return $this->exclusive()->getMinorAmount()->toInt();
+        }
+
+        return $this->base()->getMinorAmount()->toInt();
+    }
+
+    /**
      * Split given amount into ~equal parts and return the smallest
      *
      * @param \Brick\Money\Money $amount
@@ -202,7 +221,7 @@ class Price implements \JsonSerializable
         $parts = floor($this->units);
 
         $remainder = $amount->multipliedBy($this->units - $parts, RoundingMode::FLOOR);
-        
+
         $allocated = $amount->minus($remainder);
 
         return Money::min(...$allocated->split($parts));
@@ -253,7 +272,7 @@ class Price implements \JsonSerializable
     }
 
     /**
-     * Convert this price object into a readable 
+     * Convert this price object into a readable
      * total & inclusive money string
      *
      * @return string
@@ -303,7 +322,7 @@ class Price implements \JsonSerializable
         }
 
         $base = Money::ofMinor($value['base'], $value['currency']);
-        
+
         return (new static($base, $value['units']))
             ->setVat($value['vat']);
     }
