@@ -1,5 +1,7 @@
 # PHP Prices
 
+[![run-tests](https://github.com/whitecube/php-prices/actions/workflows/tests.yml/badge.svg)](https://github.com/whitecube/php-prices/actions/workflows/tests.yml)
+
 > 💸 **Version 2.x**
 >
 > This new major version is shifting the package towards more flexibility and configuration possibilities in general.
