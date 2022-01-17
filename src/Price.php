@@ -188,6 +188,25 @@ class Price implements \JsonSerializable
     }
 
     /**
+     * Shorthand to easily get the underlying minor amount (as an integer)
+     *
+     * @param null|string $version
+     * @return int
+     */
+    public function toMinor($version = null)
+    {
+        if ($version === 'inclusive') {
+            return $this->inclusive()->getMinorAmount()->toInt();
+        }
+
+        if ($version === 'exclusive') {
+            return $this->exclusive()->getMinorAmount()->toInt();
+        }
+
+        return $this->base()->getMinorAmount()->toInt();
+    }
+
+    /**
      * Split given amount into ~equal parts and return the smallest
      *
      * @param \Brick\Money\Money $amount
