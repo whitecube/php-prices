@@ -12,7 +12,7 @@ class CustomFormatter extends Formatter
     protected $name;
 
     /**
-     * The custom formatter function 
+     * The custom formatter function
      *
      * @var callable
      */
@@ -52,6 +52,10 @@ class CustomFormatter extends Formatter
      */
     public function is($name = null)
     {
+        if (is_null($name)) {
+            return is_null($this->name);
+        }
+
         return strtolower($name) === strtolower($this->name);
     }
 
