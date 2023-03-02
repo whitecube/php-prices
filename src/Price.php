@@ -6,7 +6,10 @@ use Brick\Money\Money;
 use Brick\Money\ISOCurrencyProvider;
 use Brick\Math\RoundingMode;
 use Brick\Money\AbstractMoney;
+use Brick\Money\Context;
 use Brick\Money\Context\CustomContext;
+use Brick\Money\Currency;
+use Whitecube\Price\Vat;
 
 class Price implements \JsonSerializable
 {
@@ -22,54 +25,40 @@ class Price implements \JsonSerializable
      *
      * @var array
      */
-    static protected $rounding = [
+    static protected array $rounding = [
         'exclusive' => RoundingMode::HALF_UP,
         'vat' => RoundingMode::HALF_UP,
     ];
 
     /**
      * The root price
-     *
-     * @var \Brick\Money\AbstractMoney
      */
-    protected $base;
+    protected AbstractMoney $base;
 
     /**
      * The VAT definition
-     *
-     * @var null|\Whitecube\Price\Vat
      */
-    protected $vat;
+    protected ?Vat $vat;
 
     /**
      * The quantity that needs to be applied to the base price
-     *
-     * @var float
      */
-    protected $units;
+    protected float $units;
 
     /**
      * The price modifiers to apply
-     *
-     * @var array
      */
-    protected $modifiers = [];
+    protected array $modifiers = [];
 
     /**
      * The modified results
-     *
-     * @var array
      */
-    private $calculator;
+    private ?Calculator $calculator = null;
 
     /**
      * Create a new Price object
-     *
-     * @param \Brick\Money\AbstractMoney $base
-     * @param int $units
-     * @return void
      */
-    public function __construct(AbstractMoney $base, $units = 1)
+    public function __construct(AbstractMoney $base, int $units = 1)
     {
         $this->base = $base;
         $this->setUnits($units);
@@ -77,12 +66,8 @@ class Price implements \JsonSerializable
 
     /**
      * Convenience Money methods for creating Price objects and value formatting
-     *
-     * @param string $method
-     * @param array  $arguments
-     * @return static
      */
-    public static function __callStatic($method, $arguments)
+    public static function __callStatic(string $method, array $arguments): mixed
     {
         if(strpos($method, 'format') === 0) {
             return static::callFormatter(substr($method, 6), ...$arguments);
@@ -102,43 +87,32 @@ class Price implements \JsonSerializable
 
     /**
      * Configure the price rounding policy
-     *
-     * @param string $moment
-     * @param int $method
-     * @return void
      */
-    public static function setRounding(string $moment, int $method)
+    public static function setRounding(string $moment, int $method): void
     {
         static::$rounding[$moment] = $method;
     }
 
     /**
      * Get the current price rounding policy for given moment
-     *
-     * @param string $moment
-     * @return int
      */
-    public static function getRounding($moment)
+    public static function getRounding(string $moment): int
     {
         return static::$rounding[$moment] ?? RoundingMode::UNNECESSARY;
     }
 
     /**
      * Return the price's underlying currency instance
-     *
-     * @return \Money\Currency
      */
-    public function currency()
+    public function currency(): Currency
     {
         return $this->base->getCurrency();
     }
 
     /**
      * Return the price's underlying context instance
-     *
-     * @return null|\Brick\Money\Context
      */
-    public function context()
+    public function context(): ?Context
     {
         if (! method_exists($this->base, 'getContext')) {
             return null;
@@ -149,11 +123,8 @@ class Price implements \JsonSerializable
 
     /**
      * Return the price's base value
-     *
-     * @param bool $perUnit
-     * @return \Brick\Money\AbstractMoney
      */
-    public function base($perUnit = true)
+    public function base(bool $perUnit = true): AbstractMoney
     {
         return ($perUnit)
             ? $this->base
@@ -162,12 +133,8 @@ class Price implements \JsonSerializable
 
     /**
      * Return the EXCL. Money value
-     *
-     * @param bool $perUnit
-     * @param bool $includeAfterVat
-     * @return \Brick\Money\AbstractMoney
      */
-    public function exclusive($perUnit = false, $includeAfterVat = false)
+    public function exclusive(bool $perUnit = false, bool $includeAfterVat = false): AbstractMoney
     {
         $result = $this->build()->exclusiveBeforeVat($perUnit ? true : false);
 
@@ -182,11 +149,8 @@ class Price implements \JsonSerializable
 
     /**
      * Return the INCL. Money value
-     *
-     * @param bool $perUnit
-     * @return \Brick\Money\AbstractMoney
      */
-    public function inclusive($perUnit = false)
+    public function inclusive(bool $perUnit = false): AbstractMoney
     {
         $result = $this->build()->inclusive($perUnit ? true : false);
 
@@ -195,11 +159,8 @@ class Price implements \JsonSerializable
 
     /**
      * Shorthand to easily get the underlying minor amount (as an integer)
-     *
-     * @param null|string $version
-     * @return int
      */
-    public function toMinor($version = null)
+    public function toMinor(?string $version = null): int
     {
         if ($version === 'inclusive') {
             return $this->inclusive()->getMinorAmount()->toInt();
@@ -214,11 +175,8 @@ class Price implements \JsonSerializable
 
     /**
      * Split given amount into ~equal parts and return the smallest
-     *
-     * @param \Brick\Money\AbstractMoney $amount
-     * @return \Brick\Money\AbstractMoney
      */
-    public function perUnit(AbstractMoney $amount)
+    public function perUnit(AbstractMoney $amount): AbstractMoney
     {
         if($this->units === floatval(1)) {
             return $amount;
@@ -235,12 +193,8 @@ class Price implements \JsonSerializable
 
     /**
      * Multiply the given amount by the number of available units
-     *
-     * @param \Brick\Money\AbstractMoney $amount
-     * @param null|int $rounding
-     * @return \Brick\Money\AbstractMoney
      */
-    public function applyUnits(AbstractMoney $amount, int $rounding = null)
+    public function applyUnits(AbstractMoney $amount, ?int $rounding = null): AbstractMoney
     {
         if(is_null($rounding)) {
             $rounding = static::getRounding('exclusive');
@@ -252,10 +206,8 @@ class Price implements \JsonSerializable
     /**
      * Reset the price calculator, forcing it to rebuild
      * next time a computed value is requested.
-     *
-     * @return void
      */
-    public function invalidate()
+    public function invalidate(): void
     {
         $this->calculator = null;
     }
@@ -263,10 +215,8 @@ class Price implements \JsonSerializable
     /**
      * Launch the total price calculator only if
      * it does not yet exist or has been invalidated.
-     *
-     * @return \Whitecube\Price\Calculator
      */
-    public function build()
+    public function build(): Calculator
     {
         if(! is_null($this->calculator)) {
             return $this->calculator;
@@ -280,19 +230,12 @@ class Price implements \JsonSerializable
     /**
      * Convert this price object into a readable
      * total & inclusive money string
-     *
-     * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->inclusive()->to(new CustomContext(2), static::getRounding('vat'))->__toString();
     }
 
-    /**
-     * {@inheritdoc}
-     *
-     * @return array
-     */
     public function jsonSerialize(): array
     {
         $excl = $this->exclusive();
@@ -312,12 +255,9 @@ class Price implements \JsonSerializable
 
     /**
      * Hydrate a price object from a json string/array
-     *
-     * @param mixed $value
-     * @return static
      * @throws \InvalidArgumentException
      */
-    public static function json($value)
+    public static function json(mixed $value): static
     {
         if(is_string($value)) {
             $value = json_decode($value, true);

@@ -6,11 +6,8 @@ trait HasUnits
 {
     /**
      * Define the total units count
-     *
-     * @param mixed $value
-     * @return $this
      */
-    public function setUnits($value)
+    public function setUnits(mixed $value): static
     {
         $this->invalidate();
         
@@ -21,10 +18,8 @@ trait HasUnits
 
     /**
      * Return the total units count
-     *
-     * @return float
      */
-    public function units()
+    public function units(): float
     {
         return $this->units;
     }

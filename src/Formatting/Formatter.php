@@ -11,20 +11,14 @@ class Formatter
 {
     /**
      * Check if this formatter has the provided name
-     *
-     * @param null|string $name
-     * @return bool
      */
-    public function is($name = null)
+    public function is(?string $name = null): bool
     {
         return is_null($name);
     }
 
     /**
      * Run the formatter using the provided arguments
-     *
-     * @param array $arguments
-     * @return null|string
      */
     public function call(array $arguments) : ?string
     {
@@ -39,11 +33,6 @@ class Formatter
 
     /**
      * Extract the Money and locale arguments from the provided arguments array.
-     *
-     * @param array $arguments
-     * @param int $moneyIndex
-     * @param int $localeIndex
-     * @return array
      */
     protected function getMoneyAndLocale(array $arguments, int $moneyIndex = 0, int $localeIndex = 1) : array
     {
@@ -60,11 +49,8 @@ class Formatter
 
     /**
      * Get the Money instance from the provided value.
-     *
-     * @param mixed $value
-     * @return null|\Brick\Money\Money
      */
-    protected function toMoney($value) : ?AbstractMoney
+    protected function toMoney(mixed $value) : ?AbstractMoney
     {
         if(is_a($value, AbstractMoney::class)) {
             return $value;
@@ -83,10 +69,6 @@ class Formatter
 
     /**
      * Transform the money instance into a human-readable string
-     *
-     * @param \Brick\Money\Money $value
-     * @return string $locale
-     * @return string
      */
     protected function format(AbstractMoney $value, string $locale) : string
     {

@@ -11,12 +11,8 @@ trait OperatesOnBase
 {
     /**
      * Forward operations on the price's base value
-     *
-     * @param string $method
-     * @param array  $arguments
-     * @return $this|mixed
      */
-    public function __call($method, $arguments)
+    public function __call(string $method, array $arguments): mixed
     {
         $arguments = array_map(function($value) {
             return is_a($value, Price::class) ? $value->base() : $value;
@@ -37,22 +33,16 @@ trait OperatesOnBase
 
     /**
      * Check if given value equals the price's base value
-     *
-     * @param mixed $value
-     * @return bool
      */
-    public function equals($value)
+    public function equals(mixed $value): bool
     {
         return $this->compareTo($value) === 0;
     }
 
     /**
      * Compare a given value to the total inclusive value of this instance
-     *
-     * @param mixed $value
-     * @return int
      */
-    public function compareTo($value)
+    public function compareTo(mixed $value): int
     {
         return $this->compareMonies(
             $this->inclusive(),
@@ -62,11 +52,8 @@ trait OperatesOnBase
 
     /**
      * Compare a given value to the unitless base value of this instance
-     *
-     * @param mixed $value
-     * @return int
      */
-    public function compareBaseTo($value)
+    public function compareBaseTo(mixed $value): int
     {
         return $this->compareMonies(
             $this->base(),
@@ -76,13 +63,9 @@ trait OperatesOnBase
 
     /**
      * Compare the given "current" value to another value
-     *
-     * @param \Brick\Money\AbstractMoney $price
-     * @param \Brick\Money\AbstractMoney $that
-     * @return int
      * @throws \Brick\Money\Exception\MoneyMismatchException
      */
-    protected function compareMonies(AbstractMoney $price, AbstractMoney $that)
+    protected function compareMonies(AbstractMoney $price, AbstractMoney $that): int
     {
         $priceCurrency = $price->getCurrency();
         $thatCurrency = $that->getCurrency();
@@ -96,12 +79,8 @@ trait OperatesOnBase
 
     /**
      * Transform a given value into a Money instance
-     *
-     * @param mixed $value
-     * @param string $method
-     * @return \Brick\Money\AbstractMoney
      */
-    protected function valueToMoney($value, $method = 'inclusive')
+    protected function valueToMoney(mixed $value, string $method = 'inclusive'): AbstractMoney
     {
         if(is_a($value, Price::class)) {
             $value = $value->$method();

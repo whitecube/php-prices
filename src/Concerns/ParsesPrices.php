@@ -11,13 +11,8 @@ trait ParsesPrices
     /**
      * Create an instance from a major-value string, with 
      * or without defined currency (in which case it guesses).
-     *
-     * @param string $value
-     * @param null|mixed $currency
-     * @param int $units
-     * @return \Whitecube\Price\Price
      */
-    static public function parse($value, $currency = null, $units = 1)
+    static public function parse(string $value, mixed $currency = null, int $units = 1): Price
     {
         $parser = new Parser($value);
 

@@ -4,28 +4,22 @@ namespace Whitecube\Price;
 
 use Brick\Money\Money;
 use Brick\Money\AbstractMoney;
+use Whitecube\Price\Price;
 
 class Calculator
 {
     /**
      * The price configuration
-     *
-     * @var \Whitecube\Price\Price
      */
-    private $price;
+    private Price $price;
 
     /**
      * The previously calculated amounts
-     *
-     * @var array
      */
-    private $cache = [];
+    private array $cache = [];
 
     /**
      * Create a new calculator
-     *
-     * @param \Whitecube\Price\Price $price
-     * @return void
      */
     public function __construct(Price $price)
     {
@@ -34,11 +28,8 @@ class Calculator
 
     /**
      * Return the result for the "before VAT" Money build
-     *
-     * @param bool $perUnit
-     * @return array
      */
-    public function exclusiveBeforeVat($perUnit)
+    public function exclusiveBeforeVat(bool $perUnit): array
     {
         return $this->getCached('exclusive_before_vat', $perUnit)
             ?? $this->setCached('exclusive_before_vat', $perUnit, $this->getExclusiveBeforeVatResult($perUnit));
@@ -46,11 +37,8 @@ class Calculator
 
     /**
      * Return the result for the "VAT" Money build
-     *
-     * @param bool $perUnit
-     * @return array
      */
-    public function vat($perUnit)
+    public function vat(bool $perUnit): mixed
     {
         return $this->getCached('vat', $perUnit)
             ?? $this->setCached('vat', $perUnit, $this->getVatResult($perUnit));
@@ -58,11 +46,8 @@ class Calculator
 
     /**
      * Return the result for the "after VAT" Money build
-     *
-     * @param bool $perUnit
-     * @return array
      */
-    public function exclusiveAfterVat($perUnit)
+    public function exclusiveAfterVat(bool $perUnit): array
     {
         return $this->getCached('exclusive_after_vat', $perUnit)
             ?? $this->setCached('exclusive_after_vat', $perUnit, $this->getExclusiveAfterVatResult($perUnit));
@@ -70,11 +55,8 @@ class Calculator
 
     /**
      * Return the result for the complete Money build
-     *
-     * @param bool $perUnit
-     * @return array
      */
-    public function inclusive($perUnit)
+    public function inclusive(bool $perUnit): array
     {
         return $this->getCached('inclusive', $perUnit)
             ?? $this->setCached('inclusive', $perUnit, $this->getInclusiveResult($perUnit));
@@ -82,25 +64,16 @@ class Calculator
 
     /**
      * Retrieve a cached value for key and unit mode
-     *
-     * @param string $key
-     * @param bool $perUnit
-     * @return null|array
      */
-    protected function getCached($key, $perUnit)
+    protected function getCached(string $key, bool $perUnit): mixed
     {
         return $this->cache[$key][$perUnit ? 'unit' : 'all'] ?? null;
     }
 
     /**
      * Set a cached value for key and unit mode
-     *
-     * @param string $key
-     * @param bool $perUnit
-     * @param array $result
-     * @return array
      */
-    protected function setCached($key, $perUnit, $result)
+    protected function setCached(string $key, bool $perUnit, mixed $result): mixed
     {
         $this->cache[$key][$perUnit ? 'unit' : 'all'] = $result;
 
@@ -109,11 +82,8 @@ class Calculator
 
     /**
      * Compute the price for one unit before VAT is applied
-     *
-     * @param bool $perUnit
-     * @return array
      */
-    protected function getExclusiveBeforeVatResult($perUnit)
+    protected function getExclusiveBeforeVatResult(bool $perUnit): array
     {
         $modifiers = $this->price->getVatModifiers(false);
 
@@ -129,11 +99,8 @@ class Calculator
 
     /**
      * Compute the price for one unit after VAT is applied
-     *
-     * @param bool $perUnit
-     * @return array
      */
-    protected function getExclusiveAfterVatResult($perUnit)
+    protected function getExclusiveAfterVatResult(bool $perUnit): array
     {
         $modifiers = $this->price->getVatModifiers(true);
 
@@ -155,11 +122,8 @@ class Calculator
 
     /**
      * Compute the VAT
-     *
-     * @param bool $perUnit
-     * @return \Brick\Money\AbstractMoney
      */
-    protected function getVatResult($perUnit)
+    protected function getVatResult(bool $perUnit): AbstractMoney
     {
         $vat = $this->price->vat(true);
 
@@ -174,11 +138,8 @@ class Calculator
 
     /**
      * Compute the complete price
-     *
-     * @param bool $perUnit
-     * @return array
      */
-    protected function getInclusiveResult($perUnit)
+    protected function getInclusiveResult(bool $perUnit): array
     {
         $result = $this->exclusiveBeforeVat($perUnit);
 
@@ -194,16 +155,8 @@ class Calculator
 
     /**
      * Compute the price for one unit before VAT is applied
-     *
-     * @param \Whitecube\Price\PriceAmendable $modifier
-     * @param array $result
-     * @param bool $perUnit
-     * @param bool $postVat
-     * @param null|\Brick\Money\AbstractMoney $exclusive
-     * @param null|\Whitecube\Price\Vat $vat
-     * @return \Brick\Money\Money
      */
-    protected function applyModifier(PriceAmendable $modifier, array $result, $perUnit, $postVat = false, AbstractMoney $exclusive = null, Vat $vat = null)
+    protected function applyModifier(PriceAmendable $modifier, array $result, $perUnit, $postVat = false, AbstractMoney $exclusive = null, Vat $vat = null): array
     {
         $updated = $modifier->apply($result['amount'], $this->price->units(), $perUnit, $exclusive, $vat);
 

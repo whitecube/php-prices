@@ -8,41 +8,30 @@ interface PriceAmendable
 {
     /**
      * Return the modifier type (tax, discount, other, ...)
-     *
-     * @return string
      */
-    public function type() : string;
+    public function type(): string;
 
     /**
      * Define the modifier type (tax, discount, other, ...)
-     *
-     * @param null|string $type
-     * @return $this
      */
-    public function setType($type = null);
+    public function setType(?string $type = null): static;
 
     /**
      * Return the modifier's identification key
-     *
-     * @return null|string
      */
-    public function key() : ?string;
+    public function key(): ?string;
 
     /**
      * Get the modifier attributes that should be saved in the
      * price modification history.
-     *
-     * @return null|array
      */
-    public function attributes() : ?array;
+    public function attributes(): ?array;
 
     /**
      * Whether the modifier should be applied before the
      * VAT value has been computed.
-     *
-     * @return bool
      */
-    public function appliesAfterVat() : bool;
+    public function appliesAfterVat(): bool;
 
     /**
      * Apply the modifier on the given Money instance

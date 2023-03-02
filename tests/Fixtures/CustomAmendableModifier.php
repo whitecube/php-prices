@@ -12,23 +12,16 @@ class CustomAmendableModifier implements PriceAmendable
 {
     /**
      * The modifier's addition
-     *
-     * @var \Brick\Money\Money
      */
-    protected $tax;
+    protected Money $tax;
     
     /**
      * The "set" modifier type (tax, discount, other, ...)
-     *
-     * @return null|string
      */
-    protected $type;
+    protected ?string $type;
 
     /**
      * Create a new custom instance
-     *
-     * @param \Brick\Money\Money
-     * @return void
      */
     public function __construct(Money $tax)
     {
@@ -37,21 +30,16 @@ class CustomAmendableModifier implements PriceAmendable
 
     /**
      * Return the modifier type (tax, discount, other, ...)
-     *
-     * @return string
      */
-    public function type() : string
+    public function type(): string
     {
         return $this->type;
     }
 
     /**
      * Define the modifier type (tax, discount, other, ...)
-     *
-     * @param null|string $type
-     * @return $this
      */
-    public function setType($type = null)
+    public function setType(?string $type = null): static
     {
         $this->type = $type;
 
@@ -60,10 +48,8 @@ class CustomAmendableModifier implements PriceAmendable
 
     /**
      * Return the modifier's identification key
-     *
-     * @return null|string
      */
-    public function key() : ?string
+    public function key(): ?string
     {
         return 'bar-foo';
     }
@@ -71,10 +57,8 @@ class CustomAmendableModifier implements PriceAmendable
     /**
      * Get the modifier attributes that should be saved in the
      * price modification history.
-     *
-     * @return null|array
      */
-    public function attributes() : ?array
+    public function attributes(): ?array
     {
         return null;
     }
@@ -82,23 +66,14 @@ class CustomAmendableModifier implements PriceAmendable
     /**
      * Whether the modifier should be applied before the
      * VAT value has been computed.
-     *
-     * @return bool
      */
-    public function appliesAfterVat() : bool
+    public function appliesAfterVat(): bool
     {
         return false;
     }
 
     /**
      * Apply the modifier on the given Money instance
-     *
-     * @param \Brick\Money\AbstractMoney $build
-     * @param float $units
-     * @param bool $perUnit
-     * @param null|\Brick\Money\AbstractMoney $exclusive
-     * @param null|\Whitecube\Price\Vat $vat
-     * @return null|\Brick\Money\AbstractMoney
      */
     public function apply(AbstractMoney $build, $units, $perUnit, AbstractMoney $exclusive = null, Vat $vat = null) : ?AbstractMoney
     {

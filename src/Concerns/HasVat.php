@@ -3,8 +3,6 @@
 namespace Whitecube\Price\Concerns;
 
 use Whitecube\Price\Vat;
-use Brick\Money\Money;
-use Brick\Math\RoundingMode;
 
 trait HasVat
 {
@@ -14,7 +12,7 @@ trait HasVat
      * @param mixed $value
      * @return $this
      */
-    public function setVat($value = null)
+    public function setVat(mixed $value = null): static
     {
         $this->invalidate();
 
@@ -35,11 +33,8 @@ trait HasVat
 
     /**
      * Return the VAT definition object
-     *
-     * @param bool $withoutDefault
-     * @return null|\Whitecube\Price\Vat
      */
-    public function vat($withoutDefault = false)
+    public function vat(bool $withoutDefault = false): ?Vat
     {
         return $this->vat
             ?? ($withoutDefault ? null : new Vat(0, $this));
