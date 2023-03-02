@@ -3,8 +3,9 @@
 namespace Whitecube\Price\Concerns;
 
 use Whitecube\Price\Price;
-use Brick\Money\Money;
+use Brick\Money\AbstractMoney;
 use Brick\Money\Exception\MoneyMismatchException;
+use Brick\Money\Money;
 
 trait OperatesOnBase
 {
@@ -23,7 +24,7 @@ trait OperatesOnBase
 
         $result = call_user_func_array([$this->base, $method], $arguments);
 
-        if(! is_a($result, Money::class)) {
+        if(! is_a($result, AbstractMoney::class)) {
             return $result;
         }
 
@@ -76,12 +77,12 @@ trait OperatesOnBase
     /**
      * Compare the given "current" value to another value
      *
-     * @param \Brick\Money\Money $price
-     * @param \Brick\Money\Money $that
+     * @param \Brick\Money\AbstractMoney $price
+     * @param \Brick\Money\AbstractMoney $that
      * @return int
      * @throws \Brick\Money\Exception\MoneyMismatchException
      */
-    protected function compareMonies(Money $price, Money $that)
+    protected function compareMonies(AbstractMoney $price, AbstractMoney $that)
     {
         $priceCurrency = $price->getCurrency();
         $thatCurrency = $that->getCurrency();
@@ -98,7 +99,7 @@ trait OperatesOnBase
      *
      * @param mixed $value
      * @param string $method
-     * @return \Brick\Money\Money
+     * @return \Brick\Money\AbstractMoney
      */
     protected function valueToMoney($value, $method = 'inclusive')
     {
@@ -106,7 +107,7 @@ trait OperatesOnBase
             $value = $value->$method();
         }
 
-        if(is_a($value, Money::class)) {
+        if(is_a($value, AbstractMoney::class)) {
             return $value;
         }
 

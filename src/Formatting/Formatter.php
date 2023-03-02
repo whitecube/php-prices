@@ -3,7 +3,7 @@
 namespace Whitecube\Price\Formatting;
 
 use NumberFormatter;
-use Brick\Money\Money;
+use Brick\Money\AbstractMoney;
 use Whitecube\Price\Vat;
 use Whitecube\Price\Price;
 
@@ -30,7 +30,7 @@ class Formatter
     {
         [$value, $locale] = $this->getMoneyAndLocale($arguments);
 
-        if(! is_a($value, Money::class)) {
+        if(! is_a($value, AbstractMoney::class)) {
             return null;
         }
 
@@ -64,9 +64,9 @@ class Formatter
      * @param mixed $value
      * @return null|\Brick\Money\Money
      */
-    protected function toMoney($value) : ?Money
+    protected function toMoney($value) : ?AbstractMoney
     {
-        if(is_a($value, Money::class)) {
+        if(is_a($value, AbstractMoney::class)) {
             return $value;
         }
 
@@ -88,7 +88,7 @@ class Formatter
      * @return string $locale
      * @return string
      */
-    protected function format(Money $value, string $locale) : string
+    protected function format(AbstractMoney $value, string $locale) : string
     {
         $currency = $value->getCurrency()->getCurrencyCode();
         $value = $value->getAmount()->toFloat();

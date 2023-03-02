@@ -2,9 +2,9 @@
 
 namespace Whitecube\Price;
 
-use Brick\Money\Money;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
+use Brick\Money\AbstractMoney;
 
 class Vat
 {
@@ -59,10 +59,10 @@ class Vat
     /**
      * Compute the VAT's values
      *
-     * @param \Brick\Money\Money $exclusive
-     * @return \Brick\Money\Money
+     * @param \Brick\Money\AbstractMoney $exclusive
+     * @return \Brick\Money\AbstractMoney
      */
-    public function apply(Money $exclusive)
+    public function apply(AbstractMoney $exclusive)
     {
         $multiplier = $this->percentage->dividedBy(100, $this->percentage->getScale() + 2, RoundingMode::UP);
 

@@ -2,9 +2,9 @@
 
 namespace Tests\Fixtures;
 
-use Brick\Money\Money;
 use Whitecube\Price\Price;
 use Whitecube\Price\Formatting\CustomFormatter;
+use Brick\Money\AbstractMoney;
 
 class CustomInvertedFormatter extends CustomFormatter
 {
@@ -18,7 +18,7 @@ class CustomInvertedFormatter extends CustomFormatter
     {
         [$value, $locale] = $this->getMoneyAndLocale($arguments);
 
-        if(! is_a($value, Money::class)) {
+        if(! is_a($value, AbstractMoney::class)) {
             return null;
         }
 

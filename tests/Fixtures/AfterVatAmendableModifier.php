@@ -6,6 +6,7 @@ use Brick\Money\Money;
 use Brick\Math\RoundingMode;
 use Whitecube\Price\Vat;
 use Whitecube\Price\PriceAmendable;
+use Brick\Money\AbstractMoney;
 
 class AfterVatAmendableModifier implements PriceAmendable
 {
@@ -74,14 +75,14 @@ class AfterVatAmendableModifier implements PriceAmendable
     /**
      * Apply the modifier on the given Money instance
      *
-     * @param \Brick\Money\Money $build
+     * @param \Brick\Money\AbstractMoney $build
      * @param float $units
      * @param bool $perUnit
-     * @param null|\Brick\Money\Money $exclusive
+     * @param null|\Brick\Money\AbstractMoney $exclusive
      * @param null|\Whitecube\Price\Vat $vat
-     * @return null|\Brick\Money\Money
+     * @return null|\Brick\Money\AbstractMoney
      */
-    public function apply(Money $build, $units, $perUnit, Money $exclusive = null, Vat $vat = null) : ?Money
+    public function apply(AbstractMoney $build, $units, $perUnit, AbstractMoney $exclusive = null, Vat $vat = null) : ?AbstractMoney
     {
         $tax = Money::ofMinor(100, 'EUR');
 

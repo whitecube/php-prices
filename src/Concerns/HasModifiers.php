@@ -5,6 +5,7 @@ namespace Whitecube\Price\Concerns;
 use Whitecube\Price\Price;
 use Whitecube\Price\Modifier;
 use Whitecube\Price\PriceAmendable;
+use Brick\Money\AbstractMoney;
 use Brick\Money\Money;
 
 trait HasModifiers
@@ -85,7 +86,7 @@ trait HasModifiers
             $modifier = $modifier->inclusive();
         }
 
-        if(is_object($modifier) && ! is_a($modifier, Money::class)) {
+        if(is_object($modifier) && ! is_a($modifier, AbstractMoney::class)) {
             throw new \InvalidArgumentException('Price modifier instance should implement "' . PriceAmendable::class . '".');
         } elseif (! is_object($modifier) && ! is_numeric($modifier)) {
             throw new \InvalidArgumentException('Price modifier cannot be of type ' . gettype($modifier) . '.');

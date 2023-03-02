@@ -3,6 +3,7 @@
 namespace Whitecube\Price;
 
 use Brick\Money\Money;
+use Brick\Money\AbstractMoney;
 
 class Modifier implements PriceAmendable
 {
@@ -278,14 +279,14 @@ class Modifier implements PriceAmendable
     /**
      * Apply the modifier on the given Money instance
      *
-     * @param \Brick\Money\Money $build
+     * @param \Brick\Money\AbstractMoney $build
      * @param float $units
      * @param bool $perUnit
-     * @param null|\Brick\Money\Money $exclusive
+     * @param null|\Brick\Money\AbstractMoney $exclusive
      * @param null|\Whitecube\Price\Vat $vat
-     * @return null|\Brick\Money\Money
+     * @return null|\Brick\Money\AbstractMoney
      */
-    public function apply(Money $build, $units, $perUnit, Money $exclusive = null, Vat $vat = null) : ?Money
+    public function apply(AbstractMoney $build, $units, $perUnit, AbstractMoney $exclusive = null, Vat $vat = null) : ?AbstractMoney
     {
         if(! $this->stack) {
             return null;
@@ -296,7 +297,7 @@ class Modifier implements PriceAmendable
                 return $this->applyStackAction($action, $build);
             }
 
-            $argument = is_a($action['arguments'][0] ?? null, Money::class)
+            $argument = is_a($action['arguments'][0] ?? null, AbstractMoney::class)
                     ? $action['arguments'][0]
                     : Money::ofMinor($action['arguments'][0] ?? 0, $build->getCurrency());
 
@@ -314,10 +315,10 @@ class Modifier implements PriceAmendable
      * Apply given stack action on the price being build
      *
      * @param array $action
-     * @param \Brick\Money\Money $build
-     * @return \Brick\Money\Money
+     * @param \Brick\Money\AbstractMoney $build
+     * @return \Brick\Money\AbstractMoney
      */
-    protected function applyStackAction($action, Money $build)
+    protected function applyStackAction($action, AbstractMoney $build)
     {
         return call_user_func_array([$build, $action['method']], $action['arguments'] ?? []);
     }

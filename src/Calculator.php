@@ -3,6 +3,7 @@
 namespace Whitecube\Price;
 
 use Brick\Money\Money;
+use Brick\Money\AbstractMoney;
 
 class Calculator
 {
@@ -47,7 +48,7 @@ class Calculator
      * Return the result for the "VAT" Money build
      *
      * @param bool $perUnit
-     * @return \Brick\Money\Money
+     * @return array
      */
     public function vat($perUnit)
     {
@@ -156,7 +157,7 @@ class Calculator
      * Compute the VAT
      *
      * @param bool $perUnit
-     * @return \Brick\Money\Money
+     * @return \Brick\Money\AbstractMoney
      */
     protected function getVatResult($perUnit)
     {
@@ -198,11 +199,11 @@ class Calculator
      * @param array $result
      * @param bool $perUnit
      * @param bool $postVat
-     * @param null|\Brick\Money\Money $exclusive
+     * @param null|\Brick\Money\AbstractMoney $exclusive
      * @param null|\Whitecube\Price\Vat $vat
      * @return \Brick\Money\Money
      */
-    protected function applyModifier(PriceAmendable $modifier, array $result, $perUnit, $postVat = false, Money $exclusive = null, Vat $vat = null)
+    protected function applyModifier(PriceAmendable $modifier, array $result, $perUnit, $postVat = false, AbstractMoney $exclusive = null, Vat $vat = null)
     {
         $updated = $modifier->apply($result['amount'], $this->price->units(), $perUnit, $exclusive, $vat);
 
