@@ -41,11 +41,6 @@ class Price implements \JsonSerializable
     protected ?Vat $vat;
 
     /**
-     * The quantity that needs to be applied to the base price
-     */
-    protected float $units;
-
-    /**
      * The price modifiers to apply
      */
     protected array $modifiers = [];

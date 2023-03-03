@@ -5,6 +5,11 @@ namespace Whitecube\Price\Concerns;
 trait HasUnits
 {
     /**
+     * The quantity that needs to be applied to the base price
+     */
+    protected float $units;
+
+    /**
      * Define the total units count
      */
     public function setUnits(float|int|string $value): static
