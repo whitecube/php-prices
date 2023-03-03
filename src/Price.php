@@ -7,7 +7,7 @@ use Brick\Money\ISOCurrencyProvider;
 use Brick\Math\RoundingMode;
 use Brick\Money\AbstractMoney;
 use Brick\Money\Context;
-use Brick\Money\Context\CustomContext;
+use Brick\Money\Context\DefaultContext;
 use Brick\Money\Currency;
 use Whitecube\Price\Vat;
 
@@ -228,7 +228,7 @@ class Price implements \JsonSerializable
      */
     public function __toString(): string
     {
-        return $this->inclusive()->to(new CustomContext(2), static::getRounding('vat'))->__toString();
+        return $this->inclusive()->to(new DefaultContext, static::getRounding('vat'))->__toString();
     }
 
     public function jsonSerialize(): array
