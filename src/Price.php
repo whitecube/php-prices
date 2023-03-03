@@ -53,7 +53,7 @@ class Price implements \JsonSerializable
     /**
      * Create a new Price object
      */
-    public function __construct(AbstractMoney $base, int $units = 1)
+    public function __construct(AbstractMoney $base, float|int|string $units = 1)
     {
         $this->base = $base;
         $this->setUnits($units);
