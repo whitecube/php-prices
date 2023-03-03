@@ -50,7 +50,7 @@ class Formatter
     /**
      * Get the Money instance from the provided value.
      */
-    protected function toMoney(mixed $value) : ?AbstractMoney
+    protected function toMoney(Price|AbstractMoney|Vat $value) : AbstractMoney
     {
         if(is_a($value, AbstractMoney::class)) {
             return $value;
@@ -63,8 +63,6 @@ class Formatter
         if (is_a($value, Vat::class)) {
             return $value->money();
         }
-
-        return null;
     }
 
     /**

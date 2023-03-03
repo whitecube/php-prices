@@ -13,7 +13,7 @@ trait HasModifiers
     /**
      * Add a tax modifier
      */
-    public function addTax(mixed $modifier, ...$arguments): static
+    public function addTax(string|callable|AbstractMoney|Price|PriceAmendable $modifier, ...$arguments): static
     {
         return $this->addModifier(Modifier::TYPE_TAX, $modifier, ...$arguments);
     }
@@ -21,7 +21,7 @@ trait HasModifiers
     /**
      * Add a discount modifier
      */
-    public function addDiscount(mixed $modifier, ...$arguments): static
+    public function addDiscount(string|callable|AbstractMoney|Price|PriceAmendable $modifier, ...$arguments): static
     {
         return $this->addModifier(Modifier::TYPE_DISCOUNT, $modifier, ...$arguments);
     }
@@ -29,7 +29,7 @@ trait HasModifiers
     /**
      * Add a price modifier
      */
-    public function addModifier(string $type, mixed $modifier, ...$arguments): static
+    public function addModifier(string $type, string|callable|AbstractMoney|Price|PriceAmendable $modifier, ...$arguments): static
     {
         $this->modifiers[] = $this->makeModifier($type, $modifier, $arguments);
 
@@ -42,7 +42,7 @@ trait HasModifiers
      * Create a usable modifier instance
      * @throws \InvalidArgumentException
      */
-    protected function makeModifier(string $type, mixed $modifier, array $arguments = []): PriceAmendable
+    protected function makeModifier(string $type, string|callable|AbstractMoney|Price|PriceAmendable $modifier, array $arguments = []): PriceAmendable
     {
         if(is_string($modifier) && class_exists($modifier)) {
             $modifier = new $modifier(...$arguments);
@@ -52,8 +52,8 @@ trait HasModifiers
             return $modifier->setType($type);
         }
 
-        if(is_null($modifier) || $modifier === '') {
-            throw new \InvalidArgumentException('Price modifier cannot be null or empty.');
+        if($modifier === '') {
+            throw new \InvalidArgumentException('Price modifier cannot be empty.');
         }
 
         $instance = (new Modifier)->setType($type);
@@ -66,12 +66,6 @@ trait HasModifiers
 
         if(is_a($modifier, Price::class)) {
             $modifier = $modifier->inclusive();
-        }
-
-        if(is_object($modifier) && ! is_a($modifier, AbstractMoney::class)) {
-            throw new \InvalidArgumentException('Price modifier instance should implement "' . PriceAmendable::class . '".');
-        } elseif (! is_object($modifier) && ! is_numeric($modifier)) {
-            throw new \InvalidArgumentException('Price modifier cannot be of type ' . gettype($modifier) . '.');
         }
 
         return $instance->add($modifier, Price::getRounding('exclusive'));

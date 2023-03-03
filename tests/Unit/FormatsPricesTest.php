@@ -88,7 +88,7 @@ it('cannot format monetary values using a formatter class that does not extend C
     };
 
     Price::formatUsing($formatter);
-})->throws(\InvalidArgumentException::class);
+})->throws(\TypeError::class);
 
 it('formats monetary values using the default formatter despite of the previously defined custom formatter closure', function() {
     setlocale(LC_ALL, 'en_US.UTF-8');

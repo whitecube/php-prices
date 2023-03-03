@@ -8,11 +8,8 @@ trait HasVat
 {
     /**
      * Add a VAT value
-     *
-     * @param mixed $value
-     * @return $this
      */
-    public function setVat(mixed $value = null): static
+    public function setVat(null|BigNumber|int|float|string $value = null): static
     {
         $this->invalidate();
 

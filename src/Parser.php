@@ -20,7 +20,7 @@ class Parser
     /**
      * Create a new Parser object
      */
-    public function __construct(mixed $value)
+    public function __construct(string|int|float $value)
     {
         $this->original = strval($value);
     }

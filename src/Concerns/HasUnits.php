@@ -7,7 +7,7 @@ trait HasUnits
     /**
      * Define the total units count
      */
-    public function setUnits(mixed $value): static
+    public function setUnits(float|int|string $value): static
     {
         $this->invalidate();
         

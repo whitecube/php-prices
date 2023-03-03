@@ -67,7 +67,7 @@ class Price implements \JsonSerializable
     /**
      * Convenience Money methods for creating Price objects and value formatting
      */
-    public static function __callStatic(string $method, array $arguments): mixed
+    public static function __callStatic(string $method, array $arguments): null|string|static
     {
         if(strpos($method, 'format') === 0) {
             return static::callFormatter(substr($method, 6), ...$arguments);
@@ -257,14 +257,10 @@ class Price implements \JsonSerializable
      * Hydrate a price object from a json string/array
      * @throws \InvalidArgumentException
      */
-    public static function json(mixed $value): static
+    public static function json(string|array $value): static
     {
         if(is_string($value)) {
             $value = json_decode($value, true);
-        }
-
-        if(!is_array($value)) {
-            throw new \InvalidArgumentException('Cannot create Price from invalid argument (expects JSON string or Array)');
         }
 
         $base = Money::ofMinor($value['base'], $value['currency']);

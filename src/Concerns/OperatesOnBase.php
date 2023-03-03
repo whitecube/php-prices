@@ -6,6 +6,7 @@ use Whitecube\Price\Price;
 use Brick\Money\AbstractMoney;
 use Brick\Money\Exception\MoneyMismatchException;
 use Brick\Money\Money;
+use Brick\Math\BigNumber;
 
 trait OperatesOnBase
 {
@@ -34,7 +35,7 @@ trait OperatesOnBase
     /**
      * Check if given value equals the price's base value
      */
-    public function equals(mixed $value): bool
+    public function equals(BigNumber|int|float|string|AbstractMoney|Price $value): bool
     {
         return $this->compareTo($value) === 0;
     }
@@ -42,7 +43,7 @@ trait OperatesOnBase
     /**
      * Compare a given value to the total inclusive value of this instance
      */
-    public function compareTo(mixed $value): int
+    public function compareTo(BigNumber|int|float|string|AbstractMoney|Price $value): int
     {
         return $this->compareMonies(
             $this->inclusive(),
@@ -53,7 +54,7 @@ trait OperatesOnBase
     /**
      * Compare a given value to the unitless base value of this instance
      */
-    public function compareBaseTo(mixed $value): int
+    public function compareBaseTo(BigNumber|int|float|string|AbstractMoney|Price $value): int
     {
         return $this->compareMonies(
             $this->base(),
@@ -80,7 +81,7 @@ trait OperatesOnBase
     /**
      * Transform a given value into a Money instance
      */
-    protected function valueToMoney(mixed $value, string $method = 'inclusive'): AbstractMoney
+    protected function valueToMoney(BigNumber|int|float|string|AbstractMoney|Price $value, string $method = 'inclusive'): AbstractMoney
     {
         if(is_a($value, Price::class)) {
             $value = $value->$method();

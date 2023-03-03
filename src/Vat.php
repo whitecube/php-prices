@@ -7,6 +7,7 @@ use Brick\Math\RoundingMode;
 use Brick\Money\AbstractMoney;
 use Brick\Money\Money;
 use Whitecube\Price\Price;
+use Brick\Math\BigNumber;
 
 class Vat
 {
@@ -23,7 +24,7 @@ class Vat
     /**
      * Create a new VAT value
      */
-    public function __construct(mixed $value, Price $price)
+    public function __construct(BigNumber|int|float|string $value, Price $price)
     {
         $this->price = $price;
         $this->percentage = BigDecimal::of($value);

@@ -38,7 +38,7 @@ class Calculator
     /**
      * Return the result for the "VAT" Money build
      */
-    public function vat(bool $perUnit): mixed
+    public function vat(bool $perUnit): array|AbstractMoney
     {
         return $this->getCached('vat', $perUnit)
             ?? $this->setCached('vat', $perUnit, $this->getVatResult($perUnit));
@@ -65,7 +65,7 @@ class Calculator
     /**
      * Retrieve a cached value for key and unit mode
      */
-    protected function getCached(string $key, bool $perUnit): mixed
+    protected function getCached(string $key, bool $perUnit): null|array|AbstractMoney
     {
         return $this->cache[$key][$perUnit ? 'unit' : 'all'] ?? null;
     }
@@ -73,7 +73,7 @@ class Calculator
     /**
      * Set a cached value for key and unit mode
      */
-    protected function setCached(string $key, bool $perUnit, mixed $result): mixed
+    protected function setCached(string $key, bool $perUnit, array|AbstractMoney $result): array|AbstractMoney
     {
         $this->cache[$key][$perUnit ? 'unit' : 'all'] = $result;
 

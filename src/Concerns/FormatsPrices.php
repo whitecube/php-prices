@@ -4,6 +4,8 @@ namespace Whitecube\Price\Concerns;
 
 use Whitecube\Price\Formatting\Formatter;
 use Whitecube\Price\Formatting\CustomFormatter;
+use Brick\Money\AbstractMoney;
+use Whitecube\Price\Price;
 
 trait FormatsPrices
 {
@@ -32,7 +34,7 @@ trait FormatsPrices
      * Formats the given monetary value using the package's default formatter.
      * This static method is hardcoded in order to prevent overwriting.
      */
-    static public function formatDefault(mixed $value, ?string $locale = null): string
+    static public function formatDefault(AbstractMoney|Price $value, ?string $locale = null): string
     {
         return static::getDefaultFormatter()->call([$value, $locale]);
     }
@@ -41,7 +43,7 @@ trait FormatsPrices
      * Formats the given monetary value using the package's default formatter.
      * This static method is hardcoded in order to prevent overwriting.
      */
-    static public function formatUsing(mixed $formatter): CustomFormatter
+    static public function formatUsing(string|callable|CustomFormatter $formatter): CustomFormatter
     {
         if(is_string($formatter) && is_a($formatter, CustomFormatter::class, true)) {
             $instance = new $formatter;
@@ -49,8 +51,6 @@ trait FormatsPrices
             $instance = $formatter;
         } elseif (is_callable($formatter)) {
             $instance = new CustomFormatter($formatter);
-        } else {
-            throw new \InvalidArgumentException('Price formatter should be callable or extend "\\Whitecube\\Price\\CustomFormatter". "' . gettype($formatter) . '" provided.');
         }
 
         static::$formatters[] = $instance;
