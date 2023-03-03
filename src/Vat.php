@@ -41,7 +41,7 @@ class Vat
     /**
      * Get the VAT's Money value
      */
-    public function money(bool $perUnit = false): Money
+    public function money(bool $perUnit = false): AbstractMoney
     {
         return $this->price->build()->vat($perUnit);
     }
