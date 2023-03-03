@@ -43,5 +43,5 @@ interface PriceAmendable
      * @param null|\Whitecube\Price\Vat $vat
      * @return null|\Brick\Money\AbstractMoney
      */
-    public function apply(AbstractMoney $build, $units, $perUnit, AbstractMoney $exclusive = null, Vat $vat = null) : ?AbstractMoney;
+    public function apply(AbstractMoney $build, float $units, bool $perUnit, AbstractMoney $exclusive = null, Vat $vat = null) : ?AbstractMoney;
 }
