@@ -5,12 +5,14 @@ namespace Whitecube\Price\Concerns;
 trait HasUnits
 {
     /**
-     * Define the total units count
-     *
-     * @param mixed $value
-     * @return $this
+     * The quantity that needs to be applied to the base price
      */
-    public function setUnits($value)
+    protected float $units;
+
+    /**
+     * Define the total units count
+     */
+    public function setUnits(float|int|string $value): static
     {
         $this->invalidate();
         
@@ -21,10 +23,8 @@ trait HasUnits
 
     /**
      * Return the total units count
-     *
-     * @return float
      */
-    public function units()
+    public function units(): float
     {
         return $this->units;
     }

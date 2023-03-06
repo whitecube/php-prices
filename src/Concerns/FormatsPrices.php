@@ -4,35 +4,28 @@ namespace Whitecube\Price\Concerns;
 
 use Whitecube\Price\Formatting\Formatter;
 use Whitecube\Price\Formatting\CustomFormatter;
+use Brick\Money\AbstractMoney;
+use Whitecube\Price\Price;
 
 trait FormatsPrices
 {
     /**
      * The defined custom formatters.
-     *
-     * @var array
      */
-    static protected $formatters = [];
+    static protected array $formatters = [];
 
     /**
      * Formats the given monetary value into the application's currently preferred format.
-     *
-     * @param array $arguments
-     * @return string
      */
-    static public function format(...$arguments)
+    static public function format(...$arguments): ?string
     {
         return static::callFormatter(null, ...$arguments);
     }
 
     /**
      * Formats the given monetary value into the application's currently preferred format.
-     *
-     * @param null|string $name
-     * @param array $arguments
-     * @return string
      */
-    static protected function callFormatter($name, ...$arguments)
+    static protected function callFormatter(?string $name, ...$arguments): ?string
     {
         return static::getAssignedFormatter($name)->call($arguments);
     }
@@ -40,12 +33,8 @@ trait FormatsPrices
     /**
      * Formats the given monetary value using the package's default formatter.
      * This static method is hardcoded in order to prevent overwriting.
-     *
-     * @param string $value
-     * @param null|string $locale
-     * @return string
      */
-    static public function formatDefault($value, $locale = null)
+    static public function formatDefault(AbstractMoney|Price $value, ?string $locale = null): string
     {
         return static::getDefaultFormatter()->call([$value, $locale]);
     }
@@ -53,11 +42,8 @@ trait FormatsPrices
     /**
      * Formats the given monetary value using the package's default formatter.
      * This static method is hardcoded in order to prevent overwriting.
-     *
-     * @param mixed $formatter
-     * @return \Whitecube\Price\CustomFormatter
      */
-    static public function formatUsing($formatter) : CustomFormatter
+    static public function formatUsing(string|callable|CustomFormatter $formatter): CustomFormatter
     {
         if(is_string($formatter) && is_a($formatter, CustomFormatter::class, true)) {
             $instance = new $formatter;
@@ -65,8 +51,6 @@ trait FormatsPrices
             $instance = $formatter;
         } elseif (is_callable($formatter)) {
             $instance = new CustomFormatter($formatter);
-        } else {
-            throw new \InvalidArgumentException('Price formatter should be callable or extend "\\Whitecube\\Price\\CustomFormatter". "' . gettype($formatter) . '" provided.');
         }
 
         static::$formatters[] = $instance;
@@ -76,11 +60,8 @@ trait FormatsPrices
 
     /**
      * Returns the correct formatter for the requested context
-     *
-     * @param null|string $name
-     * @return \Whitecube\Price\Formatter
      */
-    static protected function getAssignedFormatter($name = null) : Formatter
+    static protected function getAssignedFormatter(?string $name = null): Formatter
     {
         foreach (static::$formatters as $formatter) {
             if ($formatter->is($name)) return $formatter;
@@ -91,20 +72,16 @@ trait FormatsPrices
 
     /**
      * Returns the package's default formatter
-     *
-     * @return \Whitecube\Price\Formatter
      */
-    static protected function getDefaultFormatter() : Formatter
+    static protected function getDefaultFormatter(): Formatter
     {
         return new Formatter();
     }
 
     /**
      * Unsets all the previously defined custom formatters.
-     *
-     * @return void
      */
-    static public function forgetAllFormatters()
+    static public function forgetAllFormatters(): void
     {
         static::$formatters = [];
     }

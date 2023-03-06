@@ -2,42 +2,36 @@
 
 namespace Whitecube\Price\Formatting;
 
+use Closure;
+
 class CustomFormatter extends Formatter
 {
     /**
      * The defined name for this formatter
-     *
-     * @var null|string
      */
-    protected $name;
+    protected ?string $name = null;
 
     /**
      * The custom formatter function
-     *
-     * @var callable
      */
-    protected $closure;
+    protected ?Closure $closure = null;
 
     /**
      * Create a new formatter instance
-     *
-     * @param callable $closure
-     * @return void
      */
-    public function __construct(callable $closure = null)
+    public function __construct(?callable $closure = null)
     {
-        $this->closure = $closure;
+        if (! is_null($closure)) {
+            $this->closure = Closure::fromCallable($closure);
+        }
 
         return $this;
     }
 
     /**
      * Set ther formatter's name
-     *
-     * @param string $name
-     * @return this
      */
-    public function name(string $name)
+    public function name(string $name): static
     {
         $this->name = $name;
 
@@ -46,11 +40,8 @@ class CustomFormatter extends Formatter
 
     /**
      * Check if this formatter has the provided name
-     *
-     * @param null|string $name
-     * @return bool
      */
-    public function is($name = null)
+    public function is(?string $name = null): bool
     {
         if (is_null($name)) {
             return is_null($this->name);

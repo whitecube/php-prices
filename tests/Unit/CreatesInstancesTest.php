@@ -84,3 +84,12 @@ it('creates instances from parsed string with given units', function() {
     expect($price->__toString())->toBe('EUR 8.80');
     expect($price->units())->toBe(floatval(4));
 });
+
+it('creates instances from rational money', function() {
+    $money = Money::ofMinor(500, 'EUR')->toRational()->dividedBy(3);
+
+    $price = new Price($money);
+
+    expect($price->inclusive()->simplified()->__toString())->toBe('EUR 5/3');
+    expect($price->__toString())->toBe('EUR 1.67');
+});

@@ -9,35 +9,26 @@ class Parser
 {
     /**
      * The available parsable currency symbols
-     *
-     * @var array
      */
-    static protected $symbols;
+    static protected ?array $symbols = null;
 
     /**
      * The original string value
-     *
-     * @var string
      */
-    protected $original;
+    protected string $original;
 
     /**
      * Create a new Parser object
-     *
-     * @param mixed $value
-     * @return void
      */
-    public function __construct($value)
+    public function __construct(string|int|float $value)
     {
         $this->original = strval($value);
     }
 
     /**
      * Find and transform the numeric value
-     *
-     * @return string
      */
-    public function extractValue()
+    public function extractValue(): string
     {
         $string = str_replace([',', ' ', ' '], ['.', '', ''], $this->original);
 
@@ -58,10 +49,8 @@ class Parser
 
     /**
      * Find the currency ISO-code
-     *
-     * @return null|string
      */
-    public function extractCurrency()
+    public function extractCurrency(): ?string
     {
         $symbols = static::getSymbols();
 
@@ -82,12 +71,8 @@ class Parser
 
     /**
      * Generate a Regex string for given currency
-     *
-     * @param \Brick\Money\Currency $currency
-     * @param null|string $symbol
-     * @return string
      */
-    protected function getCurrencyPattern(Currency $currency, $symbol = null)
+    protected function getCurrencyPattern(Currency $currency, ?string $symbol = null): string
     {
         $pattern = '/^(?:(?:.*?[^\d]?\s)|(?:.*?\d))?(';
         $pattern .= $this->getEscapedPatternString($currency->getCurrencyCode());
@@ -104,11 +89,8 @@ class Parser
 
     /**
      * Escape each character for the given regex string
-     *
-     * @param string $search
-     * @return string
      */
-    protected function getEscapedPatternString($search)
+    protected function getEscapedPatternString(string $search): string
     {
         $escaped = ['(',')','.',':','^','$','[',']','?','!','+','=','*',',','{','}','/','\\','-'];
 
@@ -120,10 +102,8 @@ class Parser
 
     /**
      * Get all the available currency symbols
-     *
-     * @return array
      */
-    static public function getSymbols()
+    static public function getSymbols(): array
     {
         if(is_null(static::$symbols)) {
             static::$symbols = static::loadSymbols();
@@ -134,11 +114,9 @@ class Parser
 
     /**
      * Try to load the available currency symbols
-     *
-     * @return array
      * @throws \RuntimeException
      */
-    static protected function loadSymbols()
+    static protected function loadSymbols(): array
     {
         $file = __DIR__ . '/../resources/symbols.php';
 

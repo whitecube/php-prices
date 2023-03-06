@@ -3,13 +3,12 @@
 namespace Whitecube\Price;
 
 use Brick\Money\Money;
+use Brick\Money\AbstractMoney;
 
 class Modifier implements PriceAmendable
 {
     /**
      * The default modifier types
-     *
-     * @var string
      */
     const TYPE_TAX = 'tax';
     const TYPE_DISCOUNT = 'discount';
@@ -17,57 +16,40 @@ class Modifier implements PriceAmendable
 
     /**
      * The effective modifier type
-     *
-     * @var null|string
      */
-    protected $type;
+    protected ?string $type = null;
 
     /**
      * The modifier's identifier
-     *
-     * @var null|string
      */
-    protected $key;
+    protected ?string $key = null;
 
     /**
      * The extra attributes that should be passed along
-     *
-     * @var array
      */
-    protected $attributes = [];
+    protected array $attributes = [];
 
     /**
      * Whether this modifier should be executed
      * before or after the VAT value has been computed.
-     *
-     * @var bool
      */
-    protected $postVat = false;
+    protected bool $postVat = false;
 
     /**
      * Whether this modifier covers a single unit
      * or the whole price regardless of its units.
-     *
-     * @var bool
      */
-    protected $perUnit = true;
+    protected bool $perUnit = true;
 
     /**
      * The modifications that should be applied to the price
-     *
-     * @var array
      */
-    protected $stack = [];
+    protected array $stack = [];
 
     /**
      * Create a new modifier instance
-     *
-     * @param mixed $callback
-     * @param null|string $type
-     * @param bool $pre
-     * @return static
      */
-    static public function of($configuration)
+    static public function of(array $configuration): static
     {
         return (new static())
             ->setType($configuration['type'] ?? null)
@@ -78,11 +60,8 @@ class Modifier implements PriceAmendable
 
     /**
      * Define the modifier type (tax, discount, other, ...)
-     *
-     * @param null|string $type
-     * @return $this
      */
-    public function setType($type = null)
+    public function setType(?string $type = null): static
     {
         $this->type = $type;
 
@@ -91,21 +70,16 @@ class Modifier implements PriceAmendable
 
     /**
      * Return the modifier type (tax, discount, other, ...)
-     *
-     * @return string
      */
-    public function type() : string
+    public function type(): string
     {
         return $this->type ?: static::TYPE_UNDEFINED;
     }
 
     /**
      * Define the modifier's identification key
-     *
-     * @param null|string $key
-     * @return $this
      */
-    public function setKey($key = null)
+    public function setKey(?string $key = null): static
     {
         $this->key = $key;
 
@@ -114,21 +88,16 @@ class Modifier implements PriceAmendable
 
     /**
      * Return the modifier's identification key
-     *
-     * @return null|string
      */
-    public function key() : ?string
+    public function key(): ?string
     {
         return $this->key;
     }
 
     /**
      * Define the modifier's extra attributes
-     *
-     * @param array $attributes
-     * @return $this
      */
-    public function setAttributes(array $attributes = [])
+    public function setAttributes(array $attributes = []): static
     {
         $this->attributes = $attributes;
 
@@ -137,10 +106,8 @@ class Modifier implements PriceAmendable
     /**
      * Get the modifier attributes that should be saved in the
      * price modification history.
-     *
-     * @return null|array
      */
-    public function attributes() : ?array
+    public function attributes(): ?array
     {
         return $this->attributes ?: null;
     }
@@ -148,11 +115,8 @@ class Modifier implements PriceAmendable
     /**
      * Whether the modifier should be applied before the
      * VAT value has been computed.
-     *
-     * @param bool $postVat
-     * @return $this
      */
-    public function setPostVat($postVat = true)
+    public function setPostVat(bool $postVat = true): static
     {
         $this->postVat = $postVat;
 
@@ -162,10 +126,8 @@ class Modifier implements PriceAmendable
     /**
      * Whether the modifier should be applied before the
      * VAT value has been computed.
-     *
-     * @return bool
      */
-    public function appliesAfterVat() : bool
+    public function appliesAfterVat(): bool
     {
         return $this->postVat ? true : false;
     }
@@ -173,11 +135,8 @@ class Modifier implements PriceAmendable
     /**
      * Whether this modifier covers a single unit
      * or the whole price regardless of its units.
-     *
-     * @param bool $perUnit
-     * @return $this
      */
-    public function setPerUnit($perUnit = true)
+    public function setPerUnit(bool $perUnit = true): static
     {
         $this->perUnit = $perUnit;
 
@@ -187,21 +146,16 @@ class Modifier implements PriceAmendable
     /**
      * Whether this modifier covers a single unit
      * or the whole price regardless of its units.
-     *
-     * @return bool
      */
-    public function appliesPerUnit() : bool
+    public function appliesPerUnit(): bool
     {
         return $this->perUnit ? true : false;
     }
 
     /**
      * Add an addition modification to the stack
-     *
-     * @param array $arguments
-     * @return $this
      */
-    public function add(...$arguments)
+    public function add(...$arguments): static
     {
         $this->stack[] = [
             'method' => 'plus',
@@ -213,11 +167,8 @@ class Modifier implements PriceAmendable
 
     /**
      * Add a substraction modification to the stack
-     *
-     * @param array $arguments
-     * @return $this
      */
-    public function subtract(...$arguments)
+    public function subtract(...$arguments): static
     {
         $this->stack[] = [
             'method' => 'minus',
@@ -229,11 +180,8 @@ class Modifier implements PriceAmendable
 
     /**
      * Add a multiplication modification to the stack
-     *
-     * @param array $arguments
-     * @return $this
      */
-    public function multiply(...$arguments)
+    public function multiply(...$arguments): static
     {
         $this->stack[] = [
             'method' => 'multipliedBy',
@@ -245,11 +193,8 @@ class Modifier implements PriceAmendable
 
     /**
      * Add a division modification to the stack
-     *
-     * @param array $arguments
-     * @return $this
      */
-    public function divide(...$arguments)
+    public function divide(...$arguments): static
     {
         $this->stack[] = [
             'method' => 'dividedBy',
@@ -261,12 +206,8 @@ class Modifier implements PriceAmendable
 
     /**
      * Add a absolute modification to the stack
-     *
-     * @param mixed $that
-     * @param null|int $rounding
-     * @return $this
      */
-    public function abs()
+    public function abs(): static
     {
         $this->stack[] = [
             'method' => 'abs',
@@ -277,15 +218,8 @@ class Modifier implements PriceAmendable
 
     /**
      * Apply the modifier on the given Money instance
-     *
-     * @param \Brick\Money\Money $build
-     * @param float $units
-     * @param bool $perUnit
-     * @param null|\Brick\Money\Money $exclusive
-     * @param null|\Whitecube\Price\Vat $vat
-     * @return null|\Brick\Money\Money
      */
-    public function apply(Money $build, $units, $perUnit, Money $exclusive = null, Vat $vat = null) : ?Money
+    public function apply(AbstractMoney $build, $units, $perUnit, AbstractMoney $exclusive = null, Vat $vat = null) : ?AbstractMoney
     {
         if(! $this->stack) {
             return null;
@@ -296,7 +230,7 @@ class Modifier implements PriceAmendable
                 return $this->applyStackAction($action, $build);
             }
 
-            $argument = is_a($action['arguments'][0] ?? null, Money::class)
+            $argument = is_a($action['arguments'][0] ?? null, AbstractMoney::class)
                     ? $action['arguments'][0]
                     : Money::ofMinor($action['arguments'][0] ?? 0, $build->getCurrency());
 
@@ -312,12 +246,8 @@ class Modifier implements PriceAmendable
 
     /**
      * Apply given stack action on the price being build
-     *
-     * @param array $action
-     * @param \Brick\Money\Money $build
-     * @return \Brick\Money\Money
      */
-    protected function applyStackAction($action, Money $build)
+    protected function applyStackAction(array $action, AbstractMoney $build): AbstractMoney
     {
         return call_user_func_array([$build, $action['method']], $action['arguments'] ?? []);
     }

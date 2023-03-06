@@ -6,33 +6,27 @@ use Brick\Money\Money;
 use Brick\Math\RoundingMode;
 use Whitecube\Price\Vat;
 use Whitecube\Price\PriceAmendable;
+use Brick\Money\AbstractMoney;
 
 class AfterVatAmendableModifier implements PriceAmendable
 {
     /**
      * The "set" modifier type (tax, discount, other, ...)
-     *
-     * @return null|string
      */
-    protected $type;
+    protected ?string $type;
 
     /**
      * Return the modifier type (tax, discount, other, ...)
-     *
-     * @return string
      */
-    public function type() : string
+    public function type(): string
     {
         return $this->type;
     }
 
     /**
      * Define the modifier type (tax, discount, other, ...)
-     *
-     * @param null|string $type
-     * @return $this
      */
-    public function setType($type = null)
+    public function setType(?string $type = null): static
     {
         $this->type = $type;
 
@@ -41,10 +35,8 @@ class AfterVatAmendableModifier implements PriceAmendable
 
     /**
      * Return the modifier's identification key
-     *
-     * @return null|string
      */
-    public function key() : ?string
+    public function key(): ?string
     {
         return 'after-vat';
     }
@@ -52,10 +44,8 @@ class AfterVatAmendableModifier implements PriceAmendable
     /**
      * Get the modifier attributes that should be saved in the
      * price modification history.
-     *
-     * @return null|array
      */
-    public function attributes() : ?array
+    public function attributes(): ?array
     {
         return null;
     }
@@ -63,25 +53,16 @@ class AfterVatAmendableModifier implements PriceAmendable
     /**
      * Whether the modifier should be applied before the
      * VAT value has been computed.
-     *
-     * @return bool
      */
-    public function appliesAfterVat() : bool
+    public function appliesAfterVat(): bool
     {
         return true;
     }
 
     /**
      * Apply the modifier on the given Money instance
-     *
-     * @param \Brick\Money\Money $build
-     * @param float $units
-     * @param bool $perUnit
-     * @param null|\Brick\Money\Money $exclusive
-     * @param null|\Whitecube\Price\Vat $vat
-     * @return null|\Brick\Money\Money
      */
-    public function apply(Money $build, $units, $perUnit, Money $exclusive = null, Vat $vat = null) : ?Money
+    public function apply(AbstractMoney $build, $units, $perUnit, AbstractMoney $exclusive = null, Vat $vat = null) : ?AbstractMoney
     {
         $tax = Money::ofMinor(100, 'EUR');
 

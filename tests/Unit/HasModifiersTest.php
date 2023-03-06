@@ -120,15 +120,15 @@ it('can perform modifier absolute value', function() {
 
 it('cannot add a NULL modifier', function() {
     Price::EUR(500, 2)->addModifier('custom', null);
-})->throws(\InvalidArgumentException::class);
+})->throws(\TypeError::class);
 
 it('cannot add an invalid modifier', function() {
     Price::EUR(500, 2)->addModifier('custom', ['something','unusable']);
-})->throws(\InvalidArgumentException::class);
+})->throws(\TypeError::class);
 
 it('cannot add a non-PriceAmendable modifier instance', function() {
     Price::EUR(500, 2)->addModifier('custom', new NonAmendableModifier());
-})->throws(\InvalidArgumentException::class);
+})->throws(\TypeError::class);
 
 it('can add a numeric modifier', function() {
     $price = Price::EUR(500, 2)->addModifier('custom', '-100');
