@@ -2,11 +2,12 @@
 
 [![run-tests](https://github.com/whitecube/php-prices/actions/workflows/tests.yml/badge.svg)](https://github.com/whitecube/php-prices/actions/workflows/tests.yml)
 
-> 💸 **Version 2.x**
+> 💸 **Version 3.x**
 >
-> This new major version is shifting the package towards more flexibility and configuration possibilities in general.
+> This new major version aims to avoid rounding errors when working with division and multiplication.
 >
-> One of the main differences is that we replaced [`moneyphp/money`](https://github.com/moneyphp/money) with [`brick/money`](https://github.com/brick/money) under the hood. This introduces a ton of **breaking changes**, mainly on the instantiation methods that now reflect brick/money's API in order to keep things developer friendly. The `1.x` branch will still be available and maintained for a while, but we strongly recommend updating to `2.x`.
+> We have replaced almost all `Brick\Money\Money` typehints to `Brick\Money\AbstractMoney` in order to allow usage of `Brick\Money\RationalMoney` instances as the base for the price object, in order to allow rounding-free division and multiplication. See [the new chapter on rounding errors](#handling-rounding-properly-when-using-division-and-multiplication) in this documentation for more information.  
+> We have also added type definitions everywhere we could. This introduces some **breaking changes**.
 
 Using the underlying [`brick/money`](https://github.com/brick/money) library, this simple Price object allows to work with complex composite monetary values which include exclusive, inclusive, VAT (and other potential taxes) and discount amounts. It makes it safer and easier to compute final displayable prices without having to worry about their construction.
 
@@ -18,7 +19,7 @@ composer require whitecube/php-prices
 
 ## Getting started
 
-Each `Price` object has a `Brick\Money\Money` instance which is considered to be the item's unchanged, per-unit & exclusive amount. All the composition operations, such as adding VAT or applying discounts, are added on top of this base value.
+Each `Price` object has a base `Brick\Money\Money` or `Brick\Money\RationalMoney` instance which is considered to be the item's unchanged, per-unit & exclusive amount. All the composition operations, such as adding VAT or applying discounts, are added on top of this base value.
 
 ```php
 use Whitecube\Price\Price;
@@ -36,7 +37,7 @@ There are several convenient ways to obtain a `Price` instance:
 
 | Method                                           | Using major values                | Using minor values                  | Defining units                            |
 | :----------------------------------------------- | :-------------------------------- | :---------------------------------- | :---------------------------------------- |
-| [Constructor](#from-constructor)                 | `new Price(Money $base)`          | `new Price(Money $base)`            | `new Price(Money $base, $units)`          |
+| [Constructor](#from-constructor)                 | `new Price(AbstractMoney $base)`          | `new Price(AbstractMoney $base)`            | `new Price(AbstractMoney $base, $units)`          |
 | [Brick/Money API](#from-brickmoney-like-methods) | `Price::of($major, $currency)`    | `Price::ofMinor($minor, $currency)` | -                                         |
 | [Currency API](#from-currency-code-methods)      | -                                 | `Price::EUR($minor)`                | `Price::USD($minor, $units)`              |
 | [Parsed strings](#from-parsed-string-values)     | `Price::parse($value, $currency)` | -                                   | `Price::parse($value, $currency, $units)` |
@@ -104,7 +105,9 @@ Parsing formatted strings is a tricky subject. More information on [parsing stri
 
 ## Accessing the Money objects (getters)
 
-Once set, the **base amount** can be accessed using the `base()` method.
+Once set, the **base amount** can be accessed using the `base()` method. 
+
+> **Note** If you give an instance of `Brick\Money\Money` as a parameter when instanciating the price object, you will get a `Brick\Money\Money` instance back. Similarly, instanciating with `Brick\Money\RationalMoney` will give you a `RationalMoney` object back.
 
 ```php
 $perUnit = $price->base();                      // Brick\Money\Money
@@ -181,11 +184,10 @@ $price->compareBaseTo(Price::USD(500, 4));      // 0
 
 The price object will forward all the `Brick\Money\Money` API method calls to its base value.
 
-> ⚠️ **Warning**: In opposition to [Money](https://github.com/brick/money) objects, Price objects are not immutable. Therefore, operations like plus, minus, etc. will directly modify the price's base value instead of returning a new instance.
+> **Warning**: In opposition to [Money](https://github.com/brick/money) objects, Price objects are not immutable. Therefore, operations like plus, minus, etc. will directly modify the price's base value instead of returning a new instance.
 
 ```php
 use Whitecube\Price\Price;
-use Brick\Money\Money;
 
 $price = Price::ofMinor(500, 'USD')->setUnits(2);   // 2 x $5.00
 
@@ -199,6 +201,53 @@ $price->minus('2.00')                               // 2 x $3.00
 Please refer to [`brick/money`'s documentation](https://github.com/brick/money) for the full list of available features.
 
 > 💡 **Nice to know**: Whenever possible, you should prefer using modifiers to alter a price since its base value is meant to be constant. For more information on modifiers, please take at the ["Adding modifiers" section](#adding-modifiers) below.
+
+### Handling rounding properly when using division and multiplication
+
+When creating a price object from a `Brick\Money\Money` instance, rounding errors can occur when doing division and multiplication.
+
+An example of the problem: we have a base price of 1000 minor units, that we need to divide by 12 and then multiply by 11.
+
+`1000 / 12 * 11 = 916,6666666666...`
+
+Using the regular `Brick\Money\Money` class forces us to specify a rounding mode when doing the division, which means we have a rounded result before doing the multiplication, which introduces an error in the result:
+
+
+```php
+use \Brick\Money\Money;
+use \Whitecube\Price\Price;
+use \Brick\Math\RoundingMode;
+
+$base = Money::ofMinor(1000, 'EUR');
+$price = new Price($base);
+
+// A rounding mode is mandatory in order to do the division,
+// which causes rounding errors down the line
+$price->dividedBy(12, RoundingMode::HALF_UP)->multipliedBy(11);
+
+$price->getMinorAmount(); // 913 minor units ❌
+```
+
+The solution is to build the Price instance with a base `Brick\Money\RationalMoney` instance instead, which represents the amount as a fraction and thus does not require rounding.
+
+
+```php
+use \Brick\Money\Money;
+use \Whitecube\Price\Price;
+use \Brick\Math\RoundingMode;
+use \Brick\Money\Context\CustomContext;
+
+$base = Money::ofMinor(1000, 'EUR')->toRational();
+$price = new Price($base);
+
+// With RationalMoney, rounding is not necessary at this stage
+$price->dividedBy(12)->multipliedBy(11);
+
+// But rounding can occur at the very end
+$price->to(new CustomContext(2), RoundingMode::HALF_UP)->getMinorAmount(); // 917 minor units ✅
+```
+
+For more information, see [brick/money's documentation on the matter](https://github.com/brick/money#advanced-calculations).
 
 ## Setting units (quantities)
 
