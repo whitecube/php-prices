@@ -415,14 +415,14 @@ class SomeRandomModifier implements PriceAmendable
      *
      * @return string
      */
-    protected $type;
+    protected string $type;
 
     /**
      * Return the modifier type (tax, discount, other, ...)
      *
      * @return string
      */
-    public function type() : string
+    public function type(): string
     {
         return $this->type;
     }
@@ -433,7 +433,7 @@ class SomeRandomModifier implements PriceAmendable
      * @param null|string $type
      * @return $this
      */
-    public function setType($type = null)
+    public function setType(?string $type = null): static
     {
         $this->type = $type;
 
@@ -445,7 +445,7 @@ class SomeRandomModifier implements PriceAmendable
      *
      * @return null|string
      */
-    public function key() : ?string
+    public function key(): ?string
     {
         return 'very-random-tax';
     }
@@ -456,7 +456,7 @@ class SomeRandomModifier implements PriceAmendable
      *
      * @return null|array
      */
-    public function attributes() : ?array
+    public function attributes(): ?array
     {
         return [
             'subtitle' => 'Just because we don\'t like you today',
@@ -470,7 +470,7 @@ class SomeRandomModifier implements PriceAmendable
      *
      * @return bool
      */
-    public function appliesAfterVat() : bool
+    public function appliesAfterVat(): bool
     {
         return false;
     }
@@ -485,7 +485,7 @@ class SomeRandomModifier implements PriceAmendable
      * @param null|\Whitecube\Price\Vat $vat
      * @return null|\Brick\Money\AbstractMoney
      */
-    public function apply(AbstractMoney $build, $units, $perUnit, AbstractMoney $exclusive = null, Vat $vat = null) : ?AbstractMoney
+    public function apply(AbstractMoney $build, float $units, bool $perUnit, AbstractMoney $exclusive = null, Vat $vat = null): ?AbstractMoney
     {
         if(date('j') > 1) {
             // Do not apply if it's not the first day of the month
