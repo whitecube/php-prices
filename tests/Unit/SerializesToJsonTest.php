@@ -10,18 +10,16 @@ it('serializes basic price data', function() {
         ->setUnits(3)
         ->setVat(10.75);
 
-    $json = json_encode($price);
-
-    $data = json_decode($json, true);
+    $data = json_decode(json_encode($price), true);
 
     expect(is_array($data))->toBeTrue();
-    expect($data['base'] ?? null)->toBe('500');
+    expect($data['base'] ?? null)->toBe('500/100');
     expect($data['currency'] ?? null)->toBe('EUR');
     expect($data['units'] ?? null)->toBe(3);
     expect($data['vat'] ?? null)->toBe(10.75);
     expect(is_array($data['total'] ?? null))->toBeTrue();
-    expect($data['total']['exclusive'] ?? null)->toBe('1500');
-    expect($data['total']['inclusive'] ?? null)->toBe('1661');
+    expect($data['total']['exclusive'] ?? null)->toBe('1500/100');
+    expect($data['total']['inclusive'] ?? null)->toBe('1661/100');
 });
 
 it('hydrates instance from JSON string', function() {

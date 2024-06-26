@@ -6,6 +6,7 @@ use Brick\Money\Money;
 use Brick\Money\ISOCurrencyProvider;
 use Brick\Math\RoundingMode;
 use Brick\Money\AbstractMoney;
+use Brick\Money\RationalMoney;
 use Brick\Money\Context;
 use Brick\Money\Context\DefaultContext;
 use Brick\Money\Currency;
@@ -237,13 +238,13 @@ class Price implements \JsonSerializable
         $incl = $this->inclusive();
 
         return [
-            'base' => $this->base->getMinorAmount(),
+            'base' => $this->base->toRational()->getAmount(),
             'currency' => $this->base->getCurrency()->getCurrencyCode(),
             'units' => $this->units,
             'vat' => $this->vat->percentage(),
             'total' => [
-                'exclusive' => $excl->getMinorAmount(),
-                'inclusive' => $incl->getMinorAmount(),
+                'exclusive' => $excl->toRational()->getAmount(),
+                'inclusive' => $incl->toRational()->getAmount(),
             ],
         ];
     }
@@ -258,7 +259,9 @@ class Price implements \JsonSerializable
             $value = json_decode($value, true);
         }
 
-        $base = Money::ofMinor($value['base'], $value['currency']);
+        $base = (strpos($value['base'], '/'))
+            ? RationalMoney::of($value['base'], $value['currency'])
+            : Money::ofMinor($value['base'], $value['currency']);
 
         return (new static($base, $value['units']))
             ->setVat($value['vat']);
