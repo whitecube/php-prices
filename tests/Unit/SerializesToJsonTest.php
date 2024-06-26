@@ -22,8 +22,21 @@ it('serializes basic price data', function() {
     expect($data['total']['inclusive'] ?? null)->toBe('1661/100');
 });
 
-it('hydrates instance from JSON string', function() {
+it('hydrates Money instance from JSON string', function() {
     $price = Price::ofMinor(500, 'EUR')
+        ->setUnits(3)
+        ->setVat(10.75);
+
+    $instance = Price::json(json_encode($price));
+
+    expect($instance)->toBeInstanceOf(Price::class);
+    expect($instance->getAmount()->compareTo($price->base()->getAmount()))->toBe(0);
+    expect($instance->units())->toBe(floatval(3));
+    expect($instance->vat()->percentage())->toBe(10.75);
+});
+
+it('hydrates RationalMoney instance from JSON string', function() {
+    $price = (new Price(Money::ofMinor(500, 'EUR')->toRational()))
         ->setUnits(3)
         ->setVat(10.75);
 

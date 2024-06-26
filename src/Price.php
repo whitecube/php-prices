@@ -238,15 +238,24 @@ class Price implements \JsonSerializable
         $incl = $this->inclusive();
 
         return [
-            'base' => $this->base->toRational()->getAmount(),
+            'base' => $this->getRational($this->base)->getAmount(),
             'currency' => $this->base->getCurrency()->getCurrencyCode(),
             'units' => $this->units,
             'vat' => $this->vat->percentage(),
             'total' => [
-                'exclusive' => $excl->toRational()->getAmount(),
-                'inclusive' => $incl->toRational()->getAmount(),
+                'exclusive' => $this->getRational($excl)->getAmount(),
+                'inclusive' => $this->getRational($incl)->getAmount(),
             ],
         ];
+    }
+
+    protected function getRational(AbstractMoney $money): RationalMoney
+    {
+        if(is_a($money, RationalMoney::class)) {
+            return $money;
+        }
+
+        return $money->toRational();
     }
 
     /**
