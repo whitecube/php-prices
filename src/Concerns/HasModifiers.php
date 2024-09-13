@@ -68,7 +68,7 @@ trait HasModifiers
             $modifier = $modifier->inclusive();
         }
 
-        return $instance->add($modifier, Price::getRounding('exclusive'));
+        return $instance->add($modifier);
     }
 
     /**

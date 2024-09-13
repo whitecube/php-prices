@@ -3,7 +3,7 @@
 namespace Whitecube\Price;
 
 use Brick\Money\Money;
-use Brick\Money\AbstractMoney;
+use Brick\Money\RationalMoney;
 
 class Modifier implements PriceAmendable
 {
@@ -155,11 +155,11 @@ class Modifier implements PriceAmendable
     /**
      * Add an addition modification to the stack
      */
-    public function add(...$arguments): static
+    public function add($argument): static
     {
         $this->stack[] = [
             'method' => 'plus',
-            'arguments' => $arguments
+            'argument' => $argument
         ];
 
         return $this;
@@ -168,11 +168,11 @@ class Modifier implements PriceAmendable
     /**
      * Add a substraction modification to the stack
      */
-    public function subtract(...$arguments): static
+    public function subtract($argument): static
     {
         $this->stack[] = [
             'method' => 'minus',
-            'arguments' => $arguments
+            'argument' => $argument
         ];
 
         return $this;
@@ -181,11 +181,11 @@ class Modifier implements PriceAmendable
     /**
      * Add a multiplication modification to the stack
      */
-    public function multiply(...$arguments): static
+    public function multiply($argument): static
     {
         $this->stack[] = [
             'method' => 'multipliedBy',
-            'arguments' => $arguments
+            'argument' => $argument
         ];
 
         return $this;
@@ -194,11 +194,11 @@ class Modifier implements PriceAmendable
     /**
      * Add a division modification to the stack
      */
-    public function divide(...$arguments): static
+    public function divide($argument): static
     {
         $this->stack[] = [
             'method' => 'dividedBy',
-            'arguments' => $arguments
+            'argument' => $argument
         ];
 
         return $this;
@@ -219,7 +219,7 @@ class Modifier implements PriceAmendable
     /**
      * Apply the modifier on the given Money instance
      */
-    public function apply(AbstractMoney $build, $units, $perUnit, AbstractMoney $exclusive = null, Vat $vat = null) : ?AbstractMoney
+    public function apply(RationalMoney $build, $units, $perUnit, RationalMoney $exclusive = null, Vat $vat = null) : ?RationalMoney
     {
         if(! $this->stack) {
             return null;
@@ -230,15 +230,15 @@ class Modifier implements PriceAmendable
                 return $this->applyStackAction($action, $build);
             }
 
-            $argument = is_a($action['arguments'][0] ?? null, AbstractMoney::class)
-                    ? $action['arguments'][0]
-                    : Money::ofMinor($action['arguments'][0] ?? 0, $build->getCurrency());
+            $argument = is_a($action['argument'] ?? null, RationalMoney::class)
+                    ? $action['argument']
+                    : Money::ofMinor($action['argument'] ?? 0, $build->getCurrency())->toRational();
 
             if($this->appliesPerUnit() && (! $perUnit) && $units > 1) {
-                $argument = $argument->multipliedBy($units, Price::getRounding('exclusive'));
+                $argument = $argument->multipliedBy($units);
             }
 
-            $action['arguments'][0] = $argument;
+            $action['argument'] = $argument;
 
             return $this->applyStackAction($action, $build);
         }, $build);
@@ -247,8 +247,8 @@ class Modifier implements PriceAmendable
     /**
      * Apply given stack action on the price being build
      */
-    protected function applyStackAction(array $action, AbstractMoney $build): AbstractMoney
+    protected function applyStackAction(array $action, RationalMoney $build): RationalMoney
     {
-        return call_user_func_array([$build, $action['method']], $action['arguments'] ?? []);
+        return call_user_func([$build, $action['method']], $action['argument'] ?? null);
     }
 }

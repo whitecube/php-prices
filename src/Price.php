@@ -22,19 +22,24 @@ class Price implements \JsonSerializable
     use Concerns\HasModifiers;
 
     /**
-     * The rounding methods that should be used when calculating prices
-     *
-     * @var array
+     * The default rounding methods that should be applied when calculating prices
      */
-    static protected array $rounding = [
-        'exclusive' => RoundingMode::HALF_UP,
-        'vat' => RoundingMode::HALF_UP,
-    ];
+    static protected ?int $defaultRoundingMode = null;
 
     /**
-     * The root price
+     * The default Money context that should be applied transforming Rational monies
      */
-    protected AbstractMoney $base;
+    static protected ?Context $defaultContext = null;
+
+    /**
+     * The root pricing value
+     */
+    protected RationalMoney $base;
+
+    /**
+     * The original pricing context
+     */
+    protected ?Context $context;
 
     /**
      * The VAT definition
@@ -54,9 +59,14 @@ class Price implements \JsonSerializable
     /**
      * Create a new Price object
      */
-    public function __construct(AbstractMoney $base, float|int|string $units = 1)
+    public function __construct(AbstractMoney $base, float|int|string $units = 1, ?Context $context = null)
     {
-        $this->base = $base;
+        $this->base = $this->valueToRationalMoney($base);
+
+        $this->context = ! is_null($context)
+            ? $context
+            : (method_exists($base, 'getContext') ? $base->getContext() : null);
+
         $this->setUnits($units);
     }
 
@@ -82,19 +92,35 @@ class Price implements \JsonSerializable
     }
 
     /**
-     * Configure the price rounding policy
+     * Configure the default price rounding policy
      */
-    public static function setRounding(string $moment, int $method): void
+    public static function setDefaultRoundingMode(RoundingMode $roundingMode): void
     {
-        static::$rounding[$moment] = $method;
+        static::$defaultRoundingMode = $roundingMode;
     }
 
     /**
-     * Get the current price rounding policy for given moment
+     * Get the default price rounding policy
      */
-    public static function getRounding(string $moment): int
+    public static function getDefaultRoundingMode(): RoundingMode
     {
-        return static::$rounding[$moment] ?? RoundingMode::UNNECESSARY;
+        return static::$defaultRoundingMode ?? RoundingMode::UNNECESSARY;
+    }
+
+    /**
+     * Configure the default monies Context
+     */
+    public static function setDefaultContext(Context $context): void
+    {
+        static::$defaultContext = $context;
+    }
+
+    /**
+     * Get the default price rounding policy
+     */
+    public static function getDefaultContext(): Context
+    {
+        return static::$defaultContext ?? new DefaultContext();
     }
 
     /**
@@ -106,21 +132,27 @@ class Price implements \JsonSerializable
     }
 
     /**
-     * Return the price's underlying context instance
+     * Define the price's Money Context
      */
-    public function context(): ?Context
+    public function setContext(Context $context): static
     {
-        if (! method_exists($this->base, 'getContext')) {
-            return null;
-        }
+        $this->context = $context;
 
-        return $this->base->getContext();
+        return $this;
     }
 
     /**
-     * Return the price's base value
+     * Return the price's Money context
      */
-    public function base(bool $perUnit = true): AbstractMoney
+    public function context(): Context
+    {
+        return $this->context ?? static::getDefaultContext();
+    }
+
+    /**
+     * Return the price's base amount as a Rational Money instance
+     */
+    public function base(bool $perUnit = true): RationalMoney
     {
         return ($perUnit)
             ? $this->base
@@ -128,9 +160,17 @@ class Price implements \JsonSerializable
     }
 
     /**
-     * Return the EXCL. Money value
+     * Return the price's base amount as a contextualized Money instance
      */
-    public function exclusive(bool $perUnit = false, bool $includeAfterVat = false): AbstractMoney
+    public function baseMoney(bool $perUnit = true, ?RoundingMode $roundingMode = null): Money
+    {
+        return $this->toContext($this->base($perUnit), $roundingMode);
+    }
+
+    /**
+     * Return the price's EXCL. amount as a Rational Money instance
+     */
+    public function exclusive(bool $perUnit = false, bool $includeAfterVat = false): RationalMoney
     {
         $result = $this->build()->exclusiveBeforeVat($perUnit ? true : false);
 
@@ -140,17 +180,44 @@ class Price implements \JsonSerializable
 
         $supplement = $this->build()->exclusiveAfterVat($perUnit ? true : false);
 
-        return $result['amount']->plus($supplement['amount'], static::getRounding('exclusive'));
+        return $result['amount']->plus($supplement['amount']);
     }
 
     /**
-     * Return the INCL. Money value
+     * Return the price's EXCL. amount as a contextualized Money instance
      */
-    public function inclusive(bool $perUnit = false): AbstractMoney
+    public function exclusiveMoney(bool $perUnit = true, bool $includeAfterVat = false, ?RoundingMode $roundingMode = null): Money
+    {
+        return $this->toContext($this->exclusive($perUnit, $includeAfterVat), $roundingMode);
+    }
+
+    /**
+     * Return the price's INCL. amount as a Rational Money instance
+     */
+    public function inclusive(bool $perUnit = false): RationalMoney
     {
         $result = $this->build()->inclusive($perUnit ? true : false);
 
         return $result['amount'];
+    }
+
+    /**
+     * Return the price's EXCL. amount as a contextualized Money instance
+     */
+    public function inclusiveMoney(bool $perUnit = true, ?RoundingMode $roundingMode = null): Money
+    {
+        return $this->toContext($this->inclusive($perUnit), $roundingMode);
+    }
+
+    /**
+     * Transform the provided Rational Money to a contextualized Money instance
+     */
+    protected function toContext(RationalMoney $value, ?RoundingMode $roundingMode = null): Money
+    {
+        return $value->to(
+            $this->context(),
+            $roundingMode ?? static::getDefaultRoundingMode()
+        );
     }
 
     /**
@@ -159,14 +226,14 @@ class Price implements \JsonSerializable
     public function toMinor(?string $version = null): int
     {
         if ($version === 'inclusive') {
-            return $this->inclusive()->getMinorAmount()->toInt();
+            return $this->inclusiveMoney()->getMinorAmount()->toInt();
         }
 
         if ($version === 'exclusive') {
-            return $this->exclusive()->getMinorAmount()->toInt();
+            return $this->exclusiveMoney()->getMinorAmount()->toInt();
         }
 
-        return $this->base()->getMinorAmount()->toInt();
+        return $this->baseMoney()->getMinorAmount()->toInt();
     }
 
     /**
@@ -190,13 +257,9 @@ class Price implements \JsonSerializable
     /**
      * Multiply the given amount by the number of available units
      */
-    public function applyUnits(AbstractMoney $amount, ?int $rounding = null): AbstractMoney
+    public function applyUnits(RationalMoney $amount): RationalMoney
     {
-        if(is_null($rounding)) {
-            $rounding = static::getRounding('exclusive');
-        }
-
-        return $amount->multipliedBy($this->units, $rounding);
+        return $amount->multipliedBy($this->units);
     }
 
     /**
@@ -224,38 +287,46 @@ class Price implements \JsonSerializable
     }
 
     /**
+     * Transform a given value into a Money instance
+     */
+    protected function valueToRationalMoney(BigNumber|int|float|string|AbstractMoney|Price $value, string $method = 'base'): RationalMoney
+    {
+        if(is_a($value, RationalMoney::class)) {
+            return $value;
+        }
+
+        if(is_a($value, Money::class)) {
+            return $value->toRational();
+        }
+
+        if(is_a($value, Price::class)) {
+            return $value->$method();
+        }
+
+        return Money::ofMinor($value, $this->currency())->toRational();
+    }
+
+    /**
      * Convert this price object into a readable
      * total & inclusive money string
      */
     public function __toString(): string
     {
-        return $this->inclusive()->to(new DefaultContext, static::getRounding('vat'))->__toString();
+        return $this->inclusiveMoney()->__toString();
     }
 
     public function jsonSerialize(): array
     {
-        $excl = $this->exclusive();
-        $incl = $this->inclusive();
-
         return [
-            'base' => $this->getRational($this->base)->getAmount(),
-            'currency' => $this->base->getCurrency()->getCurrencyCode(),
+            'base' => $this->base->getAmount(),
+            'currency' => $this->currency()->getCurrencyCode(),
             'units' => $this->units,
-            'vat' => $this->vat->percentage(),
+            'vat' => $this->vat?->percentage(),
             'total' => [
-                'exclusive' => $this->getRational($excl)->getAmount(),
-                'inclusive' => $this->getRational($incl)->getAmount(),
+                'exclusive' => $this->exclusive()->getAmount(),
+                'inclusive' => $this->inclusive()->getAmount(),
             ],
         ];
-    }
-
-    protected function getRational(AbstractMoney $money): RationalMoney
-    {
-        if(is_a($money, RationalMoney::class)) {
-            return $money;
-        }
-
-        return $money->toRational();
     }
 
     /**
