@@ -599,6 +599,9 @@ $totalCustomTypeModifiers = $price->modifiers(false, 'custom');
 $totalCustomTypeModifiersPerUnit = $price->modifiers(true, 'custom');
 ```
 
+> [!WARNING]  
+> These values return instances of `RationalMoney` instead of regular `Money`, this is to allow your modifiers to return `RationalMoney` values as well. `RationalMoney` objects do not require rounding when doing operations on them. If you want to transform them to regular `Money` objects, you must specify the context and rounding options. [See the `brick/money` documentation](https://github.com/brick/money?tab=readme-ov-file#advanced-calculations) for more info.
+
 ## Output
 
 By default, all handled monetary values are wrapped into a `Brick\Money\Money` object. This should be the only way to manipulate these values in order to [avoid decimal approximation errors](https://stackoverflow.com/questions/3730019/why-not-use-double-or-float-to-represent-currency).
