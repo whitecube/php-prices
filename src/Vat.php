@@ -4,7 +4,7 @@ namespace Whitecube\Price;
 
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
-use Brick\Money\AbstractMoney;
+use Brick\Money\RationalMoney;
 use Brick\Money\Money;
 use Whitecube\Price\Price;
 use Brick\Math\BigNumber;
@@ -41,7 +41,7 @@ class Vat
     /**
      * Get the VAT's Money value
      */
-    public function money(bool $perUnit = false): AbstractMoney
+    public function money(bool $perUnit = false): RationalMoney
     {
         return $this->price->build()->vat($perUnit);
     }
@@ -49,10 +49,10 @@ class Vat
     /**
      * Compute the VAT's values
      */
-    public function apply(AbstractMoney $exclusive): AbstractMoney
+    public function apply(RationalMoney $exclusive): RationalMoney
     {
         $multiplier = $this->percentage->dividedBy(100, $this->percentage->getScale() + 2, RoundingMode::UP);
 
-        return $exclusive->multipliedBy($multiplier, Price::getRounding('vat'));
+        return $exclusive->multipliedBy($multiplier);
     }
 }

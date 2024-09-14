@@ -143,11 +143,11 @@ class Calculator
     {
         $result = $this->exclusiveBeforeVat($perUnit);
 
-        $result['amount'] = $result['amount']->plus($this->vat($perUnit), Price::getRounding('vat'));
+        $result['amount'] = $result['amount']->plus($this->vat($perUnit));
 
         $supplement = $this->exclusiveAfterVat($perUnit);
 
-        $result['amount'] = $result['amount']->plus($supplement['amount'], Price::getRounding('exclusive'));
+        $result['amount'] = $result['amount']->plus($supplement['amount']);
         $result['modifications'] = array_merge($result['modifications'], $supplement['modifications']);
 
         return $result;
