@@ -24,7 +24,7 @@ class Price implements \JsonSerializable
     /**
      * The default rounding methods that should be applied when calculating prices
      */
-    static protected ?int $defaultRoundingMode = null;
+    static protected ?RoundingMode $defaultRoundingMode = null;
 
     /**
      * The default Money context that should be applied transforming Rational monies
