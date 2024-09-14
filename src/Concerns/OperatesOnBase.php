@@ -4,6 +4,7 @@ namespace Whitecube\Price\Concerns;
 
 use Whitecube\Price\Price;
 use Brick\Money\AbstractMoney;
+use Brick\Money\RationalMoney;
 use Brick\Money\Exception\MoneyMismatchException;
 use Brick\Money\Money;
 use Brick\Math\BigNumber;
@@ -21,7 +22,7 @@ trait OperatesOnBase
 
         $result = call_user_func_array([$this->base, $method], $arguments);
 
-        if(! is_a($result, AbstractMoney::class)) {
+        if(! is_a($result, RationalMoney::class)) {
             return $result;
         }
 
@@ -33,64 +34,48 @@ trait OperatesOnBase
     }
 
     /**
-     * Check if given value equals the price's base value
+     * Check if the provided amount equals this price's total inclusive amount
      */
-    public function equals(BigNumber|int|float|string|AbstractMoney|Price $value): bool
+    public function equals(BigNumber|int|float|string|AbstractMoney|Price $that): bool
     {
-        return $this->compareTo($value) === 0;
+        return $this->compareTo($that) === 0;
     }
 
     /**
-     * Compare a given value to the total inclusive value of this instance
+     * Compare the provided amount to this price's total inclusive amount
      */
-    public function compareTo(BigNumber|int|float|string|AbstractMoney|Price $value): int
+    public function compareTo(BigNumber|int|float|string|AbstractMoney|Price $that): int
     {
         return $this->compareMonies(
             $this->inclusive(),
-            $this->valueToMoney($value)
+            $this->valueToRationalMoney($that, 'inclusive')
         );
     }
 
     /**
-     * Compare a given value to the unitless base value of this instance
+     * Compare a provided amount to this price's unitless base amount
      */
-    public function compareBaseTo(BigNumber|int|float|string|AbstractMoney|Price $value): int
+    public function compareBaseTo(BigNumber|int|float|string|AbstractMoney|Price $that): int
     {
         return $this->compareMonies(
             $this->base(),
-            $this->valueToMoney($value, 'base')
+            $this->valueToRationalMoney($that, 'base')
         );
     }
 
     /**
-     * Compare the given "current" value to another value
+     * Compare the provided "current" amount to another amount
      * @throws \Brick\Money\Exception\MoneyMismatchException
      */
-    protected function compareMonies(AbstractMoney $price, AbstractMoney $that): int
+    protected function compareMonies(RationalMoney $current, RationalMoney $that): int
     {
-        $priceCurrency = $price->getCurrency();
+        $currentCurrency = $this->currency();
         $thatCurrency = $that->getCurrency();
 
-        if($priceCurrency->getCurrencyCode() === $thatCurrency->getCurrencyCode()) {
-            return $price->getAmount()->compareTo($that->getAmount());
+        if($currentCurrency->getCurrencyCode() === $thatCurrency->getCurrencyCode()) {
+            return $current->getAmount()->compareTo($that->getAmount());
         }
 
-        throw MoneyMismatchException::currencyMismatch($priceCurrency, $thatCurrency);
-    }
-
-    /**
-     * Transform a given value into a Money instance
-     */
-    protected function valueToMoney(BigNumber|int|float|string|AbstractMoney|Price $value, string $method = 'inclusive'): AbstractMoney
-    {
-        if(is_a($value, Price::class)) {
-            $value = $value->$method();
-        }
-
-        if(is_a($value, AbstractMoney::class)) {
-            return $value;
-        }
-
-        return Money::ofMinor($value, $this->currency());
+        throw MoneyMismatchException::currencyMismatch($currentCurrency, $thatCurrency);
     }
 }

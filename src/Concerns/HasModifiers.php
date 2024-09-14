@@ -6,7 +6,7 @@ use Whitecube\Price\Price;
 use Whitecube\Price\Modifier;
 use Whitecube\Price\PriceAmendable;
 use Brick\Money\AbstractMoney;
-use Brick\Money\Money;
+use Brick\Money\RationalMoney;
 
 trait HasModifiers
 {
@@ -68,7 +68,7 @@ trait HasModifiers
             $modifier = $modifier->inclusive();
         }
 
-        return $instance->add($modifier, Price::getRounding('exclusive'));
+        return $instance->add($modifier);
     }
 
     /**
@@ -101,7 +101,7 @@ trait HasModifiers
     /**
      * Return the modification total for all discounts
      */
-    public function discounts(bool $perUnit = false): Money
+    public function discounts(bool $perUnit = false): RationalMoney
     {
         return $this->modifiers($perUnit, Modifier::TYPE_DISCOUNT);
     }
@@ -109,7 +109,7 @@ trait HasModifiers
     /**
      * Return the modification total for all taxes
      */
-    public function taxes(bool $perUnit = false): Money
+    public function taxes(bool $perUnit = false): RationalMoney
     {
         return $this->modifiers($perUnit, Modifier::TYPE_TAX);
     }
@@ -117,9 +117,9 @@ trait HasModifiers
     /**
      * Return the modification total for a given type
      */
-    public function modifiers(bool $perUnit = false, ?string $type = null): Money
+    public function modifiers(bool $perUnit = false, ?string $type = null): RationalMoney
     {
-        $amount = Money::zero($this->currency());
+        $amount = RationalMoney::of(0, $this->currency());
 
         foreach ($this->modifications($perUnit, $type) as $modification) {
             $amount = $amount->plus($modification['amount']);

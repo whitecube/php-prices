@@ -3,7 +3,7 @@
 namespace Whitecube\Price;
 
 use Brick\Money\Money;
-use Brick\Money\AbstractMoney;
+use Brick\Money\RationalMoney;
 use Whitecube\Price\Price;
 
 class Calculator
@@ -38,7 +38,7 @@ class Calculator
     /**
      * Return the result for the "VAT" Money build
      */
-    public function vat(bool $perUnit): array|AbstractMoney
+    public function vat(bool $perUnit): array|RationalMoney
     {
         return $this->getCached('vat', $perUnit)
             ?? $this->setCached('vat', $perUnit, $this->getVatResult($perUnit));
@@ -65,7 +65,7 @@ class Calculator
     /**
      * Retrieve a cached value for key and unit mode
      */
-    protected function getCached(string $key, bool $perUnit): null|array|AbstractMoney
+    protected function getCached(string $key, bool $perUnit): null|array|RationalMoney
     {
         return $this->cache[$key][$perUnit ? 'unit' : 'all'] ?? null;
     }
@@ -73,7 +73,7 @@ class Calculator
     /**
      * Set a cached value for key and unit mode
      */
-    protected function setCached(string $key, bool $perUnit, array|AbstractMoney $result): array|AbstractMoney
+    protected function setCached(string $key, bool $perUnit, array|RationalMoney $result): array|RationalMoney
     {
         $this->cache[$key][$perUnit ? 'unit' : 'all'] = $result;
 
@@ -123,12 +123,12 @@ class Calculator
     /**
      * Compute the VAT
      */
-    protected function getVatResult(bool $perUnit): AbstractMoney
+    protected function getVatResult(bool $perUnit): RationalMoney
     {
         $vat = $this->price->vat(true);
 
         if(! $vat) {
-            return Money::zero($this->price->currency(), $this->price->context());
+            return Money::zero($this->price->currency(), $this->price->context())->toRational();
         }
 
         $exclusive = $this->exclusiveBeforeVat($perUnit)['amount'];
@@ -143,11 +143,11 @@ class Calculator
     {
         $result = $this->exclusiveBeforeVat($perUnit);
 
-        $result['amount'] = $result['amount']->plus($this->vat($perUnit), Price::getRounding('vat'));
+        $result['amount'] = $result['amount']->plus($this->vat($perUnit));
 
         $supplement = $this->exclusiveAfterVat($perUnit);
 
-        $result['amount'] = $result['amount']->plus($supplement['amount'], Price::getRounding('exclusive'));
+        $result['amount'] = $result['amount']->plus($supplement['amount']);
         $result['modifications'] = array_merge($result['modifications'], $supplement['modifications']);
 
         return $result;
@@ -156,7 +156,7 @@ class Calculator
     /**
      * Compute the price for one unit before VAT is applied
      */
-    protected function applyModifier(PriceAmendable $modifier, array $result, bool $perUnit, bool $postVat = false, AbstractMoney $exclusive = null, Vat $vat = null): array
+    protected function applyModifier(PriceAmendable $modifier, array $result, bool $perUnit, bool $postVat = false, RationalMoney $exclusive = null, Vat $vat = null): array
     {
         $updated = $modifier->apply($result['amount'], $this->price->units(), $perUnit, $exclusive, $vat);
 
