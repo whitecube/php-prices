@@ -2,7 +2,7 @@
 
 namespace Whitecube\Price;
 
-use Brick\Money\AbstractMoney;
+use Brick\Money\RationalMoney;
 
 interface PriceAmendable
 {
@@ -35,13 +35,6 @@ interface PriceAmendable
 
     /**
      * Apply the modifier on the given Money instance
-     *
-     * @param \Brick\Money\AbstractMoney $build
-     * @param float $units
-     * @param bool $perUnit
-     * @param null|\Brick\Money\AbstractMoney $exclusive
-     * @param null|\Whitecube\Price\Vat $vat
-     * @return null|\Brick\Money\AbstractMoney
      */
-    public function apply(AbstractMoney $build, float $units, bool $perUnit, AbstractMoney $exclusive = null, Vat $vat = null) : ?AbstractMoney;
+    public function apply(RationalMoney $build, float $units, bool $perUnit, RationalMoney $exclusive = null, Vat $vat = null) : ?RationalMoney;
 }
