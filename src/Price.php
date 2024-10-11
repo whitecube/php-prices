@@ -39,7 +39,7 @@ class Price implements \JsonSerializable
     /**
      * The VAT definition
      */
-    protected ?Vat $vat;
+    protected ?Vat $vat = null;
 
     /**
      * The price modifiers to apply
