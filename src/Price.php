@@ -39,7 +39,7 @@ class Price implements \JsonSerializable
     /**
      * The VAT definition
      */
-    protected ?Vat $vat;
+    protected ?Vat $vat = null;
 
     /**
      * The price modifiers to apply
@@ -241,7 +241,7 @@ class Price implements \JsonSerializable
             'base' => $this->getRational($this->base)->getAmount(),
             'currency' => $this->base->getCurrency()->getCurrencyCode(),
             'units' => $this->units,
-            'vat' => $this->vat->percentage(),
+            'vat' => $this->vat?->percentage(),
             'total' => [
                 'exclusive' => $this->getRational($excl)->getAmount(),
                 'inclusive' => $this->getRational($incl)->getAmount(),

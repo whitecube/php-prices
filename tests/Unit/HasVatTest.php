@@ -68,3 +68,9 @@ it('returns inclusive amount with VAT when defined', function() {
     expect($instance->inclusive(true)->__toString())->toBe('EUR 5.50');
 });
 
+it('does not throw an exception when serializing a price with no vat', function () {
+    $instance = Price::ofMinor(500, 'EUR')->setUnits(3);
+
+    expect($instance->jsonSerialize())
+        ->toBeArray();
+});
