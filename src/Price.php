@@ -92,7 +92,7 @@ class Price implements \JsonSerializable
     /**
      * Get the current price rounding policy for given moment
      */
-    public static function getRounding(string $moment): int
+    public static function getRounding(string $moment): RoundingMode
     {
         return static::$rounding[$moment] ?? RoundingMode::UNNECESSARY;
     }
