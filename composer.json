@@ -5,7 +5,7 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
-        "php": "^8.0",
+        "php": "^8.1",
         "brick/money": "0.10.*"
     },
     "require-dev": {
