@@ -41,7 +41,7 @@ class Formatter
         }
 
         if(! ($locale = $arguments[$localeIndex] ?? null)) {
-            $locale = locale_get_default();
+            $locale = setlocale(LC_ALL, 0);
         }
 
         return [$money, $locale];

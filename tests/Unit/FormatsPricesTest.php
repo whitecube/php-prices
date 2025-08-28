@@ -17,13 +17,10 @@ it('formats Price instances as inclusive localized strings using application loc
 
 it('formats Brick\\Money instances as localized strings using application locale', function() {
     setlocale(LC_ALL, 'en_US');
-    locale_set_default('en_US');
 
     $price = Price::USD(65550, 8)->setVat(21);
 
     $fmt = new NumberFormatter('en_US', NumberFormatter::CURRENCY);
-    dump('en_US');
-    dump($fmt);
     expect(Price::format($price->exclusive()))->toBe($fmt->formatCurrency(5244.0, 'USD'));
 })->only();
 
