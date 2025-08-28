@@ -75,6 +75,8 @@ class Formatter
 
         $fmt = new NumberFormatter($locale, NumberFormatter::CURRENCY);
 
+        dump($fmt);
+
         return $fmt->formatCurrency($value, $currency);
     }
 }

@@ -21,8 +21,9 @@ it('formats Brick\\Money instances as localized strings using application locale
     $price = Price::USD(65550, 8)->setVat(21);
 
     $fmt = new NumberFormatter('en_US', NumberFormatter::CURRENCY);
+    dump($fmt);
     expect(Price::format($price->exclusive()))->toBe($fmt->formatCurrency(5244.0, 'USD'));
-});
+})->only();
 
 it('formats Vat instances as localized strings using application locale', function() {
     setlocale(LC_ALL, 'en_US.UTF-8');

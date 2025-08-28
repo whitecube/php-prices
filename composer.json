@@ -6,7 +6,8 @@
     "prefer-stable": true,
     "require": {
         "php": "^8.2",
-        "brick/money": "0.10.*"
+        "brick/money": "0.10.*",
+        "laravel/framework": "^12.26"
     },
     "require-dev": {
         "pestphp/pest": "^3.0|^4.0"
