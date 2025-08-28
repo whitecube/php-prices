@@ -9,7 +9,7 @@
         "brick/money": "0.10.*"
     },
     "require-dev": {
-        "pestphp/pest": "^4.0"
+        "pestphp/pest": "^3.0|^4.0"
     },
     "license": "MIT",
     "autoload": {
