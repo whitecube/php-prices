@@ -156,7 +156,7 @@ class Calculator
     /**
      * Compute the price for one unit before VAT is applied
      */
-    protected function applyModifier(PriceAmendable $modifier, array $result, bool $perUnit, bool $postVat = false, AbstractMoney $exclusive = null, Vat $vat = null): array
+    protected function applyModifier(PriceAmendable $modifier, array $result, bool $perUnit, bool $postVat = false, ?AbstractMoney $exclusive = null, ?Vat $vat = null): array
     {
         $updated = $modifier->apply($result['amount'], $this->price->units(), $perUnit, $exclusive, $vat);
 

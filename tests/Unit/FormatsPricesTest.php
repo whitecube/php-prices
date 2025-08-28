@@ -16,7 +16,7 @@ it('formats Price instances as inclusive localized strings using application loc
 });
 
 it('formats Brick\\Money instances as localized strings using application locale', function() {
-    setlocale(LC_ALL, 'en_US');
+    setlocale(LC_ALL, 'en_US.UTF-8');
 
     $price = Price::USD(65550, 8)->setVat(21);
 

@@ -75,7 +75,7 @@ class CustomAmendableModifier implements PriceAmendable
     /**
      * Apply the modifier on the given Money instance
      */
-    public function apply(AbstractMoney $build, $units, $perUnit, AbstractMoney $exclusive = null, Vat $vat = null) : ?AbstractMoney
+    public function apply(AbstractMoney $build, $units, $perUnit, ?AbstractMoney $exclusive = null, ?Vat $vat = null) : ?AbstractMoney
     {
         if($perUnit) {
             return $build->plus($this->tax);

@@ -9,7 +9,7 @@ jobs:
             fail-fast: false
             matrix:
                 os: [ubuntu-latest]
-                php: [8.4, 8.3, 8.2, 8.1]
+                php: [8.4, 8.3, 8.2]
                 dependency-version: [prefer-stable]
 
         name: P${{ matrix.php }} - ${{ matrix.dependency-version }} - ${{ matrix.os }}
@@ -39,4 +39,4 @@ jobs:
                 run: locale -a
 
             -   name: Execute tests
-                run: ./vendor/bin/pest
+                run: ./vendor/bin/pest --color=always
