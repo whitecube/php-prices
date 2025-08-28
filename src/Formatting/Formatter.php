@@ -73,6 +73,8 @@ class Formatter
         $currency = $value->getCurrency()->getCurrencyCode();
         $value = $value->getAmount()->toFloat();
 
+        dump($locale);
+
         $fmt = new NumberFormatter($locale, NumberFormatter::CURRENCY);
 
         dump($fmt);
