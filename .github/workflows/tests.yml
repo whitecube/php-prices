@@ -39,4 +39,4 @@ jobs:
                 run: locale -a
 
             -   name: Execute tests
-                run: ./vendor/bin/pest
+                run: ./vendor/bin/pest --color=always
