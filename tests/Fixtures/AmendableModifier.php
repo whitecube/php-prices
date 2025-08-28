@@ -61,7 +61,7 @@ class AmendableModifier implements PriceAmendable
     /**
      * Apply the modifier on the given Money instance
      */
-    public function apply(AbstractMoney $build, $units, $perUnit, AbstractMoney $exclusive = null, Vat $vat = null) : ?AbstractMoney
+    public function apply(AbstractMoney $build, $units, $perUnit, ?AbstractMoney $exclusive = null, ?Vat $vat = null) : ?AbstractMoney
     {
         return $build->multipliedBy(1.25, RoundingMode::HALF_UP);
     }
