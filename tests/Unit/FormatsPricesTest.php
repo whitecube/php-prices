@@ -20,7 +20,7 @@ it('formats Brick\\Money instances as localized strings using application locale
 
     $price = Price::USD(65550, 8)->setVat(21);
 
-    $fmt = new NumberFormatter('en_US', NumberFormatter::CURRENCY);
+    $fmt = new NumberFormatter('en_US.UTF-8', NumberFormatter::CURRENCY);
     expect(Price::format($price->exclusive()))->toBe($fmt->formatCurrency(5244.0, 'USD'));
 })->only();
 
