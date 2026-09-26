@@ -40,11 +40,45 @@ class Parser
 
         [$digits, $decimals] = array_pad(explode('.', $matches[1]), 2, '0');
 
-        $decimals = substr(strval(round(floatval('0.' . $decimals), 2)), 2);
+        $negative = str_starts_with($digits, '-');
+        $whole = ltrim($digits, '-');
+        if($whole === '') {
+            $whole = '0';
+        }
 
-        $value = ltrim($digits . str_pad($decimals, 2, '0'), '0');
+        $rounded = number_format(round(floatval('0.' . $decimals), 2), 2, '.', '');
+        [$carry, $cents] = explode('.', $rounded);
+        if($carry === '1') {
+            $whole = $this->increment($whole);
+        }
 
-        return strlen($value) ? $value : '0';
+        $value = ltrim($whole . $cents, '0');
+        if($value === '') {
+            $value = '0';
+        }
+        if($negative && $value !== '0') {
+            $value = '-' . $value;
+        }
+
+        return $value;
+    }
+
+    /**
+     * Add one to a whole-unit digit string.
+     */
+    protected function increment(string $whole): string
+    {
+        $chars = str_split($whole);
+        for($i = count($chars) - 1; $i >= 0; $i--) {
+            if($chars[$i] !== '9') {
+                $chars[$i] = (string) ((int) $chars[$i] + 1);
+
+                return implode('', $chars);
+            }
+            $chars[$i] = '0';
+        }
+
+        return '1' . implode('', $chars);
     }
 
     /**
