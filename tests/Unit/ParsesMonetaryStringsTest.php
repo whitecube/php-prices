@@ -37,6 +37,14 @@ it('parses uncommon decimal values', function() {
     expect(Price::parse('bar 6.50', 'EUR')->__toString())->toBe('EUR 6.50');
 });
 
+it('keeps a rounded cent that carries into the next unit', function() {
+    expect(Price::parse('1.999', 'EUR')->__toString())->toBe('EUR 2.00');
+    expect(Price::parse('0.999', 'EUR')->__toString())->toBe('EUR 1.00');
+    expect(Price::parse('4.995', 'EUR')->__toString())->toBe('EUR 5.00');
+    expect(Price::parse('-1.999', 'EUR')->__toString())->toBe('EUR -2.00');
+    expect(Price::parse('9.996', 'EUR')->__toString())->toBe('EUR 10.00');
+});
+
 it('parses values with both narrow non-breaking and regular spaces', function() {
     expect(Price::parse('1 234,56', 'EUR')->__toString())->toBe('EUR 1234.56');
     expect(Price::parse('1 234,56', 'EUR')->__toString())->toBe('EUR 1234.56');
